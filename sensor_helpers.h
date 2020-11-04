@@ -5,11 +5,15 @@
 #include "Adafruit_VEML7700.h"
 #include "Adafruit_SHTC3.h"
 
-extern float dust, co2, voc, temperature, humidity, light, sound;
+extern float sensorArrayAve[], readSensorTotal[];
+//extern float dust, co2, voc, temperature, humidity, light, sound;
+extern float aveTemperature;
+
 
 void beginSensors();
 void readSensors();
 void printSensors();
+void printSensorsAve();
 void getVOC();
 void getLight();
 void getSound();

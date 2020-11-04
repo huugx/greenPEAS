@@ -1,24 +1,9 @@
-#include "displayTFT.h"
+#include "display_helpers.h"
 
 float _temperature, _humidity, _eco2, _tvoc, _dustcon;
 float oldDustcon, oldEco2, oldHumidity, oldTemperature;
 int oldVirus;
-int _hist0 = 0;
-int _hist1 = 0;
-int _hist2 = 0;
-int _hist3 = 0;
-int _hist4 = 0;
-int _hist5 = 0;
-int _hist6 = 0;
-int _hist7 = 0;
-int _hist8 = 0;
-int _hist9 = 0;
-int _hist10 = 0;
-int histArray[11];          //virus index history length
-int _histArray[11];
 int vColor;
-int h0Color, h1Color;
-
 
 
 #define TFT_RST       2
@@ -113,16 +98,12 @@ void scrnMain() {
   // tft.fillRect(0, 50, 120, 50, indexColor);
   if (virusIndex <= 2) {
     vColor=GREEN;
-    h0Color=GREEN;
   } else if (virusIndex > 2 && virusIndex <= 6) {
     vColor=YELLOW;
-    h0Color=YELLOW;
   } else if (virusIndex >= 7 && virusIndex < 9) {
     vColor=ORANGE;
-    h0Color=ORANGE;
   } else {
     vColor=RED;
-    h0Color=RED;
   }
 
   tft.fillCircle(64,62,24, vColor); //use with history
@@ -130,26 +111,6 @@ void scrnMain() {
   tft.drawCircle(64,62,30, vColor);
   tft.drawCircle(64,62,31, vColor);
   
-//  tft.drawBitmap(0, 0, hist0, 128, 128, h0Color);
-//  
-//  if (_hist1 = 0) {
-//    h1Color = BLACK;
-//  } 
-// if (_hist1 > 0 && _hist1 <= 2) {
-//    h1Color = GREEN;
-//  } 
-// if (_hist1 >= 2 && _hist1 < 5) {
-//    h1Color = YELLOW;
-//  } 
-// if (_hist1 >= 5 && _hist1 <= 7) {
-//    h1Color = ORANGE;
-//  } 
-// if (_hist1 > 7) {
-//    h1Color = RED;
-//  }
-
-
-//  tft.drawBitmap(0, 0, hist1, 128, 128, h1Color);
   
   if (tempIndex < 1) {
     tft.drawBitmap(0, 0, tempIcon, 35, 35, GREEN);
@@ -185,47 +146,6 @@ void scrnMain() {
     tft.drawBitmap(0, 93, coIcon, 35, 35, RED);
   }
   
-
-
-
-
-//  if (histArray[0] = 0) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, BLACK);
-//  } else if (histArray[0] > 0 && histArray[0] < 3) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, GREEN);
-//  } else if ( histArray[0] >= 3 && histArray[0] < 5) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, YELLOW);
-//  } else if ( histArray[0] >= 5 && histArray[0] < 8) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, ORANGE);
-//  } else {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, RED);
-//  }
-//  
-//  if (histArray[1] = 0) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, BLACK);
-//  } else if (histArray[1] > 0 && histArray[1] < 3) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, GREEN);
-//  } else if ( histArray[1] >= 3 && histArray[1] < 5) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, YELLOW);
-//  } else if ( histArray[1] >= 5 && histArray[1] < 8) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, ORANGE);
-//  } else {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, RED);
-//  }
-
-
-
-//  drawText(5,55,"-9", ST77XX_WHITE,1);
-//  drawText(5,65,"HR", ST77XX_WHITE,1);
-//
-//  drawText(58,4,"-6", ST77XX_WHITE,1);
-//  drawText(58,14,"HR", ST77XX_WHITE,1);
-//
-//  drawText(112,55,"-3", ST77XX_WHITE,1);
-//  drawText(112,65,"HR", ST77XX_WHITE,1);
-//
-//  drawText(58,107,"NOW", ST77XX_WHITE,1);
-
   drawText(50,45,_virusIndex, BLACK,2);
   drawText(63,53,"/10", BLACK,1);
   drawText(50,63,"VIRUS", BLACK,1);
@@ -357,105 +277,13 @@ void scrnSound() {
 }
 
 void histIndex() {
-  extern int virusIndex;
-
-//  _hist10 = _hist9;
-//  _hist9 = _hist8;
-//  _hist8 = _hist7;
-//  _hist7 = _hist6;
-//  _hist6 = _hist5;
-//  _hist5 = _hist4;
-//  _hist4 = _hist3;
-//  _hist3 = _hist2;
-//  _hist2 = _hist1;
-  _hist1 = 2;
-  _hist0 = virusIndex;
- 
-  
-//  for (int i=1; i < 11; i++) {
-//    _histArray[i] = histArray[i-1];
-//  }
-//  
-//  _histArray[0] = virusIndex; 
-//  
-//  for (int j=0; j < 11; j++) {
-//    histArray[j] = _histArray[j];
-//  }
-//
-//  _hist0 = histArray[0];
-//  _hist1 = histArray[1];
-//  _hist2 = histArray[2];
-//  _hist3 = histArray[3];
-//  _hist4 = histArray[4];
-//  _hist5 = histArray[5];
-//  _hist6 = histArray[6];
-//  _hist7 = histArray[7];
-//  _hist8 = histArray[8];
-//  _hist9 = histArray[9];
-//  _hist10 = histArray[10];
-
-//  Serial.print("hist: ");
-//  Serial.print(_hist0);
-//  Serial.print(": ");
-//  Serial.print(_hist1);
-//  Serial.print(": ");
-//  Serial.print(_hist2);
-//  Serial.print(": ");
-//  Serial.print(_hist3);
-//  Serial.print(": ");
-//  Serial.print(_hist4);
-//  Serial.print(": ");
-//  Serial.print(_hist5);
-//  Serial.print(": ");
-//  Serial.print(_hist6);
-//  Serial.print(": ");
-//  Serial.print(_hist7);
-//  Serial.print(": ");
-//  Serial.print(_hist8);
-//  Serial.print(": ");
-//  Serial.print(_hist9);
-//  Serial.print(": ");
-//  Serial.println(_hist10);
 
 }
 
 
 void histDraw() {
 
-//  if (_hist0 = 0) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, BLACK);
-//  } else if (_hist0 > 0 && _hist0 <= 2) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, GREEN);
-//  } else if (_hist0 >= 2 && _hist0 < 5) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, YELLOW);
-//  } else if (_hist0 >= 5 && _hist0 < 7) {
-//    tft.drawBitmap(0, 0, hist0, 128, 128, ORANGE);
-//  } else if (_hist0 >= 7){
-//    tft.drawBitmap(0, 0, hist0, 128, 128, RED);
-//  }
-//
-//  if (_hist1 = 0) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, BLACK);
-//  } else if (_hist1 > 0 && _hist1 <= 2) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, GREEN);
-//  } else if (_hist1 >= 2 && _hist1 < 5) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, YELLOW);
-//  } else if (_hist1 >= 5 && _hist1 < 7) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, ORANGE);
-//  } else if (_hist1 >= 7) {
-//    tft.drawBitmap(0, 0, hist1, 128, 128, RED);
-//  }
-//  tft.drawBitmap(0, 0, hist0, 128, 128, histColor[0]);
-//  tft.drawBitmap(0, 0, hist1, 128, 128, histColor[1]);
-//  tft.drawBitmap(0, 0, hist2, 128, 128, histColor[2]);
-//  tft.drawBitmap(0, 0, hist3, 128, 128, histColor[3]);
-//  tft.drawBitmap(0, 0, hist4, 128, 128, histColor[4]);
-//  tft.drawBitmap(0, 0, hist5, 128, 128, histColor[5]);
-//  tft.drawBitmap(0, 0, hist6, 128, 128, histColor[6]);
-//  tft.drawBitmap(0, 0, hist7, 128, 128, histColor[7]);
-//  tft.drawBitmap(0, 0, hist8, 128, 128, histColor[8]);
-//  tft.drawBitmap(0, 0, hist9, 128, 128, histColor[9]);
-//  tft.drawBitmap(0, 0, his10, 128, 128, histColor[10]);
+
 }
 
 void drawText(int x, int y, char *text, uint16_t color, int size) {

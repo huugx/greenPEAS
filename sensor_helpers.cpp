@@ -10,11 +10,17 @@ float currDust, currCo2, currVoc, currTemperature, currHumidity, currLight, curr
 int counter = 0;      //change VOC sensor to baseline via millis()
 
 
-/* Pins */
+/* IO Pins */
 const int pinSound = A3;
 const int pinDustVolt = A0;
 const int pinDustLed = 1;
 
+
+
+
+/////////////////////////////////
+// Setup Sensors
+/////////////////////////////////
 
 void beginSensors() {
 
@@ -49,6 +55,12 @@ void beginSensors() {
 } /* end beginSensors() */
 
 
+
+
+/////////////////////////////////
+// Initiate Sensor Data Collection
+/////////////////////////////////
+
 void readSensors() {
   getVOC();
   getLight();
@@ -57,6 +69,13 @@ void readSensors() {
   getDust();
 
 } /* end readSensors() */
+
+
+
+
+/////////////////////////////////
+// Print Current Sensor Data
+/////////////////////////////////
 
 void printSensors() {
     Serial.print("Dust: "); Serial.print(currDust); Serial.println(" ug/m3");  
@@ -69,6 +88,30 @@ void printSensors() {
 } /* end printSensors() */
 
 
+/////////////////////////////////
+// Print Average Sensor Data
+/////////////////////////////////
+
+void printSensorsAve() {
+
+    Serial.println("/////////////////////////////////");
+    Serial.print("Dust Average: "); Serial.print(sensorArrayAve[0]); Serial.println(" ug/m3");  
+    Serial.print("Temp Average: "); Serial.print(sensorArrayAve[3]); Serial.println(" F");
+    Serial.print("Humidity Average: "); Serial.print(sensorArrayAve[4]); Serial.println("%");
+    Serial.print("VOC Average: "); Serial.print(sensorArrayAve[2]); Serial.println(" ppb");
+    Serial.print("CO2 Average: "); Serial.print(sensorArrayAve[1]); Serial.println( " ppm");
+    Serial.print("Lux Average: "); Serial.print(sensorArrayAve[5]); Serial.println( " lux");
+    Serial.print("Sound Average: "); Serial.println(sensorArrayAve[6]);
+    Serial.println("/////////////////////////////////");
+} /* end printSensors() */
+
+
+
+/////////////////////////////////
+// Get Sensor Data 
+/////////////////////////////////
+/////////////////////////////////
+// VOC AND CO2
 void getVOC() {
   // If you have a temperature / humidity sensor, you can set the absolute humidity to enable the humditiy compensation for the air quality signals
   //float temperature = 22.1; // [°C]
@@ -101,9 +144,15 @@ void getVOC() {
     Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
   }
   
-} /* end getVOC() */
+}
+// end VOC AND CO2
+/////////////////////////////////
 
 
+
+
+/////////////////////////////////
+// LIGHT
 void getLight() {
   currLight = float(veml.readLux());
    
@@ -115,8 +164,26 @@ void getLight() {
     Serial.println("** High threshold"); 
   } 
 }
+// end LIGHT 
+/////////////////////////////////
+/////////////////////////////////
+// LIGHT HELPER
+void configureLight() {
+  veml.setGain(VEML7700_GAIN_1);
+  veml.setIntegrationTime(VEML7700_IT_800MS);
+ 
+  veml.setLowThreshold(10000);
+  veml.setHighThreshold(20000);
+  veml.interruptEnable(true);
+}
+// end LIGHT HELPER
+/////////////////////////////////
 
 
+
+
+/////////////////////////////////
+// SOUND
 void getSound() {
   long sum = 0;
   
@@ -127,9 +194,15 @@ void getSound() {
     sum >>= 5;
     currSound = sum;
  
-} /* end getSound() */
+}
+// end SOUND
+/////////////////////////////////
 
 
+
+
+/////////////////////////////////
+// TEMPERATURE AND HUMIDITY
 void getTemp() {
   float celsTemperature;
   
@@ -139,10 +212,15 @@ void getTemp() {
   celsTemperature = float(temp.temperature);
   currTemperature = ((celsTemperature * 9/5) + 32);
   currHumidity = float(hum.relative_humidity);
-  
-} /* end getTemp() */
+}
+// end TEMPERATURE AND HUMIDITY 
+/////////////////////////////////
 
 
+
+
+/////////////////////////////////
+// DUST
 void getDust() {
   const float voltRatio = 0.2;
   const int noDustVoltage = 400;
@@ -166,48 +244,35 @@ void getDust() {
   } else {
     density = 0;
   }
-  
-    currDust = density;
-
-} /* end getDust() */
-
-
+  currDust = density;
+}
+// end DUST
+/////////////////////////////////
+/////////////////////////////////
+// DUST HELPER
 int calcDustFilter(int m) {
-  
   static int flag_first = 0, _buff[10], sum;
   const int _buff_max = 10;
   int i;
   
   if(flag_first == 0) {
     flag_first = 1;
-
     for(i = 0, sum = 0; i < _buff_max; i++) {
       _buff[i] = m;
       sum += _buff[i];
     }
-    
     return m;
-    
   } else {
     sum -= _buff[0];
     for(i = 0; i < (_buff_max - 1); i++) {
       _buff[i] = _buff[i + 1];
     }
-    
     _buff[9] = m;
     sum += _buff[9];
-    
     i = sum / 10.0;
     return i;
   }
   
-} /* end calcDustFilter() */
-
-void configureLight() {
-  veml.setGain(VEML7700_GAIN_1);
-  veml.setIntegrationTime(VEML7700_IT_800MS);
- 
-  veml.setLowThreshold(10000);
-  veml.setHighThreshold(20000);
-  veml.interruptEnable(true);
 }
+// end DUST HELPER 
+/////////////////////////////////
