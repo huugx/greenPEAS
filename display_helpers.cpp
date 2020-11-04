@@ -1,5 +1,8 @@
 #include "display_helpers.h"
 
+
+//Adafruit_ST7735 tft;
+
 float _temperature, _humidity, _eco2, _tvoc, _dustcon;
 float oldDustcon, oldEco2, oldHumidity, oldTemperature;
 int oldVirus;

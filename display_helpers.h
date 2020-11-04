@@ -6,11 +6,11 @@
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include "bitmap_mono.h"
 
-//extern Adafruit_ST7735 tft;
 
-extern float oldDustcon, oldEco2, oldHumidity, oldTemperature;
-extern int oldVirus;
-extern float aveTemperature; 
+extern float aveDust, aveCo2, aveVoc, aveTemperature, aveHumidity, aveLight, aveSound;
+//extern float oldDustcon, oldEco2, oldHumidity, oldTemperature;
+//extern int oldVirus;
+
 
 //Functions
 void startTFT();
@@ -27,5 +27,6 @@ void scrnLight();
 void scrnSound();
 void displayValuesOnTFT();
 void drawText(int x, int y, char *text, uint16_t color, int size);
+void wifiStatus();
 
 #endif /* DISPLAY_HELPERS_H */

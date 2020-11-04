@@ -1,16 +1,18 @@
 #include "data_helpers.h"
 
 
-const int smoothDataInterval = 10;
+//const int smoothDataInterval = 20;
 float currSensorData[7];
 const int sensorQty = (sizeof(currSensorData)/sizeof(currSensorData[0]));
 float sensorArrayAve[sensorQty];
 int readSensorIndex = 0;
 float readSensorTotal[sensorQty];
-
-
 float dataSensorArray[smoothDataInterval][sensorQty];
 
+
+/////////////////////////////////
+// Calculate Virus Index
+/////////////////////////////////
 //  float _virusIndex;
 //  int tempIndex, humIndex, co2Index, dustIndex;
 //  int virusIndex = 0;
@@ -73,9 +75,9 @@ float dataSensorArray[smoothDataInterval][sensorQty];
 //}
 
 void initSmoothSensorData() {
-  for (int thisReading = 0; thisReading < smoothDataInterval; thisReading++) {
-    for (int i = 0; i < sensorQty; i++) {
-      dataSensorArray[i][thisReading] = 0;
+  for (int i =0; i < smoothDataInterval; i++) {
+    for (int j =0; j < sensorQty; j++) {
+      dataSensorArray[i][j] = 0;
     }
   }
 

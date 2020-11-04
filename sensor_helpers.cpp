@@ -9,6 +9,10 @@ Adafruit_SHTC3 shtc3 = Adafruit_SHTC3();
 float currDust, currCo2, currVoc, currTemperature, currHumidity, currLight, currSound;
 int counter = 0;      //change VOC sensor to baseline via millis()
 
+float rawCo2;
+float preCo2 = 400;     //debugging the effects of wifi chip on Co2
+float preDust = 0;      //trigger dust to post to cloud
+
 
 /* IO Pins */
 const int pinSound = A3;
@@ -95,16 +99,41 @@ void printSensors() {
 void printSensorsAve() {
 
     Serial.println("/////////////////////////////////");
-    Serial.print("Dust Average: "); Serial.print(sensorArrayAve[0]); Serial.println(" ug/m3");  
-    Serial.print("Temp Average: "); Serial.print(sensorArrayAve[3]); Serial.println(" F");
-    Serial.print("Humidity Average: "); Serial.print(sensorArrayAve[4]); Serial.println("%");
-    Serial.print("VOC Average: "); Serial.print(sensorArrayAve[2]); Serial.println(" ppb");
-    Serial.print("CO2 Average: "); Serial.print(sensorArrayAve[1]); Serial.println( " ppm");
-    Serial.print("Lux Average: "); Serial.print(sensorArrayAve[5]); Serial.println( " lux");
-    Serial.print("Sound Average: "); Serial.println(sensorArrayAve[6]);
+    Serial.print("Dust Average: "); Serial.print(aveDust); Serial.println(" ug/m3");  
+    Serial.print("Temp Average: "); Serial.print(aveTemperature); Serial.println(" F");
+    Serial.print("Humidity Average: "); Serial.print(aveHumidity); Serial.println("%");
+    Serial.print("VOC Average: "); Serial.print(aveVoc); Serial.println(" ppb");
+    Serial.print("CO2 Average: "); Serial.print(aveCo2); Serial.println( " ppm");
+    Serial.print("Lux Average: "); Serial.print(aveLight); Serial.println( " lux");
+    Serial.print("Sound Average: "); Serial.println(aveSound);
     Serial.println("/////////////////////////////////");
 } /* end printSensors() */
 
+
+
+/////////////////////////////////
+// Post Sensor Data to Cloud
+/////////////////////////////////
+
+void postSensorsToCloud() {
+    float sampleDust = sensorArrayAve[0];
+
+    if (sampleDust <= 0.01 && preDust == 0) {
+        aveDust = 0.1;
+    } else if (sampleDust <= 0.01 && preDust == 0.1) {
+        aveDust = 0.00;
+    } else {
+      aveDust = sampleDust;
+    } 
+    preDust = aveDust;
+    
+    aveCo2 = sensorArrayAve[1];
+    aveVoc = sensorArrayAve[2];
+    aveTemperature = sensorArrayAve[3];
+    aveHumidity = sensorArrayAve[4];
+    aveLight = sensorArrayAve[5];
+    aveSound = sensorArrayAve[6];
+}
 
 
 /////////////////////////////////
@@ -112,11 +141,11 @@ void printSensorsAve() {
 /////////////////////////////////
 /////////////////////////////////
 // VOC AND CO2
-void getVOC() {
+void getVOC() { 
   // If you have a temperature / humidity sensor, you can set the absolute humidity to enable the humditiy compensation for the air quality signals
-  //float temperature = 22.1; // [°C]
-  //float humidity = 45.2; // [%RH]
-  //sgp.setHumidity(getAbsoluteHumidity(temperature, humidity));
+  float temperature = sensorArrayAve[3]; // [°F]
+  float humidity = sensorArrayAve[4]; // [%RH]
+  sgp.setHumidity(getAbsoluteHumidity(temperature, humidity));
 
   if (! sgp.IAQmeasure()) {
     Serial.println("Measurement failed");
@@ -128,8 +157,17 @@ void getVOC() {
     return;
   }
 
+  rawCo2 = sgp.eCO2;
+  
+  if (rawCo2 == 65535.00){
+    currCo2 = preCo2;
+  } else {
+    currCo2 = rawCo2;
+  }
+  preCo2 = currCo2;
+
   currVoc = sgp.TVOC;
-  currCo2 = sgp.eCO2;
+
   
   counter++;
   if (counter == 30) {
@@ -146,6 +184,16 @@ void getVOC() {
   
 }
 // end VOC AND CO2
+/////////////////////////////////
+/////////////////////////////////
+// VOC AND CO2 HELPER
+uint32_t getAbsoluteHumidity(float temperature, float humidity) {
+    // approximation formula from Sensirion SGP30 Driver Integration chapter 3.15
+    const float absoluteHumidity = 216.7f * ((humidity / 100.0f) * 6.112f * exp((17.62f * temperature) / (243.12f + temperature)) / (273.15f + temperature)); // [g/m^3]
+    const uint32_t absoluteHumidityScaled = static_cast<uint32_t>(1000.0f * absoluteHumidity); // [mg/m^3]
+    return absoluteHumidityScaled;
+}
+// end VOC AND CO2 HELPER
 /////////////////////////////////
 
 
@@ -244,7 +292,9 @@ void getDust() {
   } else {
     density = 0;
   }
+
   currDust = density;
+  
 }
 // end DUST
 /////////////////////////////////
