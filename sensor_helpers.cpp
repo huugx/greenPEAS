@@ -5,14 +5,8 @@ Adafruit_SGP30 sgp;
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 Adafruit_SHTC3 shtc3 = Adafruit_SHTC3();
 
-
-float currDust, currCo2, currVoc, currTemperature, currHumidity, currLight, currSound;
+//float currDust, currCo2, currVoc, currTemperature, currHumidity, currLight, currSound;        //FIXME: Remove
 int counter = 0;      //change VOC sensor to baseline via millis()
-
-float rawCo2;
-float preCo2 = 400;     //debugging the effects of wifi chip on Co2
-float preDust = 0;      //trigger dust to post to cloud
-
 
 /* IO Pins */
 const int pinSound = A3;
@@ -66,29 +60,33 @@ void beginSensors() {
 /////////////////////////////////
 
 void readSensors() {
-  getVOC();
+  getVoc();
+  getCo2();
   getLight();
   getSound();
-  getTemp();
+  getTemperature();
+  getHumidity();
   getDust();
+
+//  currSensorData[] = {currVirusIndex, currTemperature, currHumidity, currCo2, currVoc, currDust, currLight, currSound};
 
 } /* end readSensors() */
 
 
 
-
+/////////////////////////////////
+// DEBUGGING
 /////////////////////////////////
 // Print Current Sensor Data
-/////////////////////////////////
-
 void printSensors() {
-    Serial.print("Dust: "); Serial.print(currDust); Serial.println(" ug/m3");  
-    Serial.print("Temp: "); Serial.print(currTemperature); Serial.println(" F");
-    Serial.print("Humidity: "); Serial.print(currHumidity); Serial.println("%");
-    Serial.print("VOC: "); Serial.print(currVoc); Serial.println(" ppb");
-    Serial.print("CO2: "); Serial.print(currCo2); Serial.println( " ppm");
-    Serial.print("Lux: "); Serial.print(currLight); Serial.println( " lux");
-    Serial.print("Sound: "); Serial.println(currSound);
+    Serial.print("Virus Index: "); Serial.println(currSensorData[0]);
+    Serial.print("Temp: "); Serial.print(currSensorData[1]); Serial.println(" F");
+    Serial.print("Humidity: "); Serial.print(currSensorData[2]); Serial.println("%");
+    Serial.print("CO2: "); Serial.print(currSensorData[3]); Serial.println( " ppm");
+    Serial.print("VOC: "); Serial.print(currSensorData[4]); Serial.println(" ppb");
+    Serial.print("Dust: "); Serial.print(currSensorData[5]); Serial.println(" ug/m3");  
+    Serial.print("Lux: "); Serial.print(currSensorData[6]); Serial.println( " lux");
+    Serial.print("Sound: "); Serial.println(currSensorData[7]);
 } /* end printSensors() */
 
 
@@ -99,11 +97,12 @@ void printSensors() {
 void printSensorsAve() {
 
     Serial.println("/////////////////////////////////");
-    Serial.print("Dust Average: "); Serial.print(aveDust); Serial.println(" ug/m3");  
+    Serial.print("Virus Index: "); Serial.println(aveVirusIndex);
     Serial.print("Temp Average: "); Serial.print(aveTemperature); Serial.println(" F");
     Serial.print("Humidity Average: "); Serial.print(aveHumidity); Serial.println("%");
-    Serial.print("VOC Average: "); Serial.print(aveVoc); Serial.println(" ppb");
     Serial.print("CO2 Average: "); Serial.print(aveCo2); Serial.println( " ppm");
+    Serial.print("VOC Average: "); Serial.print(aveVoc); Serial.println(" ppb");
+    Serial.print("Dust Average: "); Serial.print(aveDust); Serial.println(" ug/m3");  
     Serial.print("Lux Average: "); Serial.print(aveLight); Serial.println( " lux");
     Serial.print("Sound Average: "); Serial.println(aveSound);
     Serial.println("/////////////////////////////////");
@@ -112,11 +111,30 @@ void printSensorsAve() {
 
 
 /////////////////////////////////
-// Post Sensor Data to Cloud
+// POSTING
 /////////////////////////////////
 
+float preDust = 0;
+
+/////////////////////////////////
+// Post Sensors to Cloud
+/////////////////////////////////
 void postSensorsToCloud() {
-    float sampleDust = sensorArrayAve[0];
+    
+    aveVirusIndex = sensorArrayAve[0];
+    aveTemperature = sensorArrayAve[1];
+    aveHumidity = sensorArrayAve[2];
+    aveCo2 = sensorArrayAve[3];
+    aveVoc = sensorArrayAve[4];
+    triggerAveDustToPost();
+    aveLight = sensorArrayAve[6];
+    aveSound = sensorArrayAve[7];
+}
+/////////////////////////////////
+// Trigger Dust Change for Posting
+/////////////////////////////////
+void triggerAveDustToPost() {
+    float sampleDust = sensorArrayAve[5];
 
     if (sampleDust <= 0.01 && preDust == 0) {
         aveDust = 0.1;
@@ -126,39 +144,32 @@ void postSensorsToCloud() {
       aveDust = sampleDust;
     } 
     preDust = aveDust;
-    
-    aveCo2 = sensorArrayAve[1];
-    aveVoc = sensorArrayAve[2];
-    aveTemperature = sensorArrayAve[3];
-    aveHumidity = sensorArrayAve[4];
-    aveLight = sensorArrayAve[5];
-    aveSound = sensorArrayAve[6];
+
 }
+// END POSTING
+/////////////////////////////////
+
 
 
 /////////////////////////////////
-// Get Sensor Data 
+// GET SENSOR DATA 
 /////////////////////////////////
 /////////////////////////////////
 // VOC AND CO2
-void getVOC() { 
-  // If you have a temperature / humidity sensor, you can set the absolute humidity to enable the humditiy compensation for the air quality signals
-  float temperature = sensorArrayAve[3]; // [°F]
-  float humidity = sensorArrayAve[4]; // [%RH]
-  sgp.setHumidity(getAbsoluteHumidity(temperature, humidity));
+float currVoc;
+float rawCo2;
+float preCo2 = 400;     //debugging the effects of wifi chip on Co2
 
-  if (! sgp.IAQmeasure()) {
-    Serial.println("Measurement failed");
-    return;
-  }
-
-  if (! sgp.IAQmeasureRaw()) {
-    Serial.println("Raw Measurement failed");
-    return;
-  }
-
-  rawCo2 = sgp.eCO2;
+float getCo2() { 
+  float currCo2;
   
+  getAbsoluteHumidityCompensation();
+  
+  sgp.IAQmeasure();
+  
+  currVoc = sgp.TVOC;
+  rawCo2 = sgp.eCO2;
+ 
   if (rawCo2 == 65535.00){
     currCo2 = preCo2;
   } else {
@@ -166,8 +177,28 @@ void getVOC() {
   }
   preCo2 = currCo2;
 
-  currVoc = sgp.TVOC;
+ float currSample = currCo2;
+ return currSample;
+}
 
+
+float getVoc() { 
+  
+  float currSample = currVoc;          //FIXME: change this variable name
+  return currSample;
+  
+}
+
+
+void getAbsoluteHumidityCompensation() {
+  
+  float temperature = aveTemperature; // [°F]
+  float humidity = aveHumidity; // [%RH]
+  sgp.setHumidity(getAbsoluteHumidity(temperature, humidity));
+}
+
+
+void getVocCo2Baseline() {
   
   counter++;
   if (counter == 30) {
@@ -178,10 +209,9 @@ void getVOC() {
       Serial.println("Failed to get baseline readings");
       return;
     }
-    Serial.print("****Baseline values: eCO2: 0x"); Serial.print(eCO2_base, HEX);
-    Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
+//    Serial.print("****Baseline values: eCO2: 0x"); Serial.print(eCO2_base, HEX);
+//    Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
   }
-  
 }
 // end VOC AND CO2
 /////////////////////////////////
@@ -201,9 +231,11 @@ uint32_t getAbsoluteHumidity(float temperature, float humidity) {
 
 /////////////////////////////////
 // LIGHT
-void getLight() {
-  currLight = float(veml.readLux());
-   
+float getLight() {
+ 
+  float currSample = float(veml.readLux());
+  return currSample;
+
   uint16_t irq = veml.interruptStatus();
   if (irq & VEML7700_INTERRUPT_LOW) {
     Serial.println("** Low threshold"); 
@@ -232,7 +264,8 @@ void configureLight() {
 
 /////////////////////////////////
 // SOUND
-void getSound() {
+float getSound() {
+  
   long sum = 0;
   
     for(int i=0; i<32; i++) {
@@ -240,8 +273,9 @@ void getSound() {
     }
  
     sum >>= 5;
-    currSound = sum;
- 
+
+    float currSample = sum;
+    return currSample;
 }
 // end SOUND
 /////////////////////////////////
@@ -251,25 +285,40 @@ void getSound() {
 
 /////////////////////////////////
 // TEMPERATURE AND HUMIDITY
-void getTemp() {
+
+float currHumidity;
+
+float getTemperature() {
+  
   float celsTemperature;
   
   sensors_event_t hum, temp;
   shtc3.getEvent(&hum, &temp);// populate temp and humidity objects with fresh data
-
+  
   celsTemperature = float(temp.temperature);
-  currTemperature = ((celsTemperature * 9/5) + 32);
   currHumidity = float(hum.relative_humidity);
+  float currSample = ((celsTemperature * 9/5) + 32);
+  return currSample;
+  
+}
+
+float getHumidity() {
+
+  float currSample = currHumidity;
+  return currSample;
 }
 // end TEMPERATURE AND HUMIDITY 
 /////////////////////////////////
 
-
+float getVirusIndex() {
+  float currSample = 0;
+  return currSample;
+}
 
 
 /////////////////////////////////
 // DUST
-void getDust() {
+float getDust() {
   const float voltRatio = 0.2;
   const int noDustVoltage = 400;
   const int sysVoltage = 5000;
@@ -293,8 +342,8 @@ void getDust() {
     density = 0;
   }
 
-  currDust = density;
-  
+  float currSample = density;
+  return currSample;
 }
 // end DUST
 /////////////////////////////////
