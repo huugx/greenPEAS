@@ -30,7 +30,6 @@ unsigned long lastScrnTime = 0;
 const unsigned long scrnDisplayReset = 15000;
 
 
-
 void debounceButton() {
   int reading = digitalRead(buttonPin);
 
@@ -38,7 +37,7 @@ void debounceButton() {
     lastDebounceTime = millis();
   }
 
-  if ((millis() - lastDebounceTime) > debounceDelay) {
+  if ((millis() - lastDebounceTime) >= debounceDelay) {
     if (reading != buttonState) {
       buttonState = reading;
 
@@ -49,9 +48,14 @@ void debounceButton() {
     }
   }
 
-  if ((millis() - lastScrnTime) > scrnDisplayReset) {
-    buttonPos = 0;
+  if (buttonPos > 0) {
+    if ((millis() - lastScrnTime) >= scrnDisplayReset) {
+      buttonPos = 0;
+      displayValuesOnTFT();
+      lastScrnTime = millis();
+    }
   }
+  
   
   lastButtonState = reading;
   
@@ -92,223 +96,137 @@ void clearTFT() {
 /////////////////////////////////
 // Display
 /////////////////////////////////
+
+int colorPicker (int index) {
+  int color;
+  index = round(index);
+  
+  if (index == 0) {
+      color=GREEN;
+  } else if (index == 1) {
+      color=YELLOW;
+  } else if (index == 2) {
+      color=ORANGE;
+  } else {
+      color=RED;
+  }
+
+  return color;
+}
+
+
 void (*displayMenuPointer[])() = {screenMain, screenTemperature, screenHumidity, screenCo2, screenVoc, screenDust, screenLight, screenSound};
 
 void displayValuesOnTFT() {
   clearTFT();
-  
+
   displayMenuPointer[buttonPos++]();
   if (buttonPos >= 8) {
     buttonPos = 0;
   }
-  Serial.println(buttonPos);
 }
 
 
 void screenMain() {
-  Serial.println("main screen");
   
-//  extern int virusIndex, tempIndex, humIndex, co2Index, dustIndex;
+  char _virusIndex[6];      // float to char conversion
+  dtostrf(aveSensorData[0], 1, 0, _virusIndex);
 
-//  char _virusIndex[6];      // float to char conversion
+  tft.fillCircle(64,62,24, colorPicker(aveSensorIAQIndex[0]));
 
-//  dtostrf(virusIndex, 1, 0, _virusIndex);
+  tft.drawBitmap(0,0, tempIcon, 35, 35, colorPicker(aveSensorIAQIndex[1]));
+  tft.drawBitmap(93, 0, humIcon, 35, 35, colorPicker(aveSensorIAQIndex[2]));
+  tft.drawBitmap(93, 93, gasIcon, 35, 35, colorPicker(aveSensorIAQIndex[3]));
+  tft.drawBitmap(0, 93, coIcon, 35, 35, colorPicker(aveSensorIAQIndex[4]));
 
-
-//  // tft.fillScreen(ST77XX_BLACK);
-//  // tft.fillRect(0, 50, 120, 50, indexColor);
-//  if (virusIndex <= 2) {
-//    vColor=GREEN;
-//  } else if (virusIndex > 2 && virusIndex <= 6) {
-//    vColor=YELLOW;
-//  } else if (virusIndex >= 7 && virusIndex < 9) {
-//    vColor=ORANGE;
-//  } else {
-//    vColor=RED;
-//  }
-//
-//  tft.fillCircle(64,62,24, vColor); //use with history
-//  tft.fillCircle(64,62,28, vColor);
-//  tft.drawCircle(64,62,30, vColor);
-//  tft.drawCircle(64,62,31, vColor);
-//  
-//  
-//  if (tempIndex < 1) {
-//    tft.drawBitmap(0, 0, tempIcon, 35, 35, GREEN);
-//  } else if (tempIndex = 1) {
-//    tft.drawBitmap(0, 0, tempIcon, 35, 35, YELLOW);
-//  } else {
-//    tft.drawBitmap(0, 0, tempIcon, 35, 35, RED);
-//  }
-//
-//  if (humIndex < 1) {
-//    tft.drawBitmap(93, 0, humIcon, 35, 35, GREEN);
-//  } else if (humIndex = 1) {
-//    tft.drawBitmap(93, 0, humIcon, 35, 35, YELLOW);
-//  } else {
-//    tft.drawBitmap(93, 0, humIcon, 35, 35, RED);
-//  }
-//  
-//  if (dustIndex < 1) {
-//    tft.drawBitmap(93, 93, gasIcon, 35, 35, GREEN);
-//  } else if (dustIndex = 1) {
-//    tft.drawBitmap(93, 93, gasIcon, 35, 35, YELLOW);
-//  } else if (dustIndex = 2) {
-//    tft.drawBitmap(93, 93, gasIcon, 35, 35, ORANGE);
-//  } else {
-//    tft.drawBitmap(93, 93, gasIcon, 35, 35, RED);
-//  }
-//  
-//  if (co2Index < 2) {
-//    tft.drawBitmap(0, 93, coIcon, 35, 35, GREEN);
-//  } else if (co2Index = 2) {
-//    tft.drawBitmap(0, 93, coIcon, 35, 35, ORANGE);
-//  } else {
-//    tft.drawBitmap(0, 93, coIcon, 35, 35, RED);
-//  }
-//  
-//  drawText(50,45,_virusIndex, BLACK,2);
-//  drawText(63,53,"/10", BLACK,1);
-//  drawText(50,63,"VIRUS", BLACK,1);
-//  drawText(50,73,"SCORE", BLACK,1);  
+  drawText(50,45,_virusIndex, BLACK,2);
+  drawText(63,53,"/10", BLACK,1);
+  drawText(50,63,"VIRUS", BLACK,1);
+  drawText(50,73,"SCORE", BLACK,1);  
+  
 } /* void displayValuesOnTFT() */
 
 
 void screenTemperature() {
-  Serial.println("temp screen");
+   
+  char _temperature[6];     // float to char conversion
+  dtostrf(aveSensorData[1], 2, 0, _temperature);
   
-//  extern int tempIndex;
-//  extern float temperature;
-//
-//  char _temperature[6];     // float to char conversion
-//  
-//  dtostrf(temperature, 2, 0, _temperature);
-//  
-//  if (tempIndex < 1) {
-//    tft.drawBitmap(24, 12, tempIconLg, 80, 80, BLACK, GREEN);
-//  } else if (tempIndex = 1) {
-//    tft.drawBitmap(24, 12, tempIconLg, 80, 80, BLACK, YELLOW);
-//  } else {
-//    tft.drawBitmap(24, 12, tempIconLg, 80, 80, BLACK, RED);
-//  }  
-//  
-//  drawText(20,100, "Temp", WHITE, 1);
-//  drawText(45,100, _temperature, WHITE, 3);
-//  drawText(85,100,"C", WHITE, 2);
+  tft.drawBitmap(24, 12, tempIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[1]));
+ 
+  drawText(20,100, "Temp", WHITE, 1);
+  drawText(45,100, _temperature, WHITE, 3);
+  drawText(85,100,"C", WHITE, 2);
 }
 
 void screenHumidity() {
-  Serial.println("hum screen");
   
-//  extern int humIndex;
-//  extern float humidity;
-//
-//  char _humidity[6];     // float to char conversion
-//  
-//  dtostrf(humidity, 2, 0, _humidity);
-//
-//  if (humIndex < 1) {
-//    tft.drawBitmap(24, 12, humIconLg, 80, 80, BLACK, GREEN);
-//  } else if (humIndex = 1) {
-//    tft.drawBitmap(24, 12, humIconLg, 80, 80, BLACK, YELLOW);
-//  } else {
-//    tft.drawBitmap(24, 12, humIconLg, 80, 80, BLACK, RED);
-//  }  
-//
-//
-//  drawText(20,100, "Hum", WHITE, 1);
-//  drawText(45,100, _humidity, WHITE, 3);
-//  drawText(85,100,"%", WHITE, 2);
+  char _humidity[6];     // float to char conversion
+  dtostrf(aveSensorData[2], 2, 0, _humidity);
+
+  tft.drawBitmap(24, 12, humIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[2]));
+
+  drawText(20,100, "Hum", WHITE, 1);
+  drawText(45,100, _humidity, WHITE, 3);
+  drawText(85,100,"%", WHITE, 2);
 }
 
 void screenCo2() {
-  Serial.println("co2 screen");
+ 
+  char _eco2[6];     // float to char conversion
+  dtostrf(aveSensorData[3], 2, 0, _eco2);
+
+   tft.drawBitmap(24, 12, coIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[3]));
   
-//  extern int co2Index;
-//  extern float eco2;
-//
-//  char _eco2[6];     // float to char conversion
-//  
-//  dtostrf(eco2, 2, 0, _eco2);
-//
-//  if (co2Index < 2) {
-//    tft.drawBitmap(24, 12, coIconLg, 80, 80, BLACK, GREEN);
-//  } else if (co2Index = 2) {
-//    tft.drawBitmap(24, 12, coIconLg, 80, 80, BLACK, YELLOW);
-//  } else {
-//    tft.drawBitmap(24, 12, coIconLg, 80, 80, BLACK, RED);
-//  } 
-//  
-//  drawText(20,100, "CO2", WHITE, 1);
-//  drawText(40,100, _eco2, WHITE, 3);
-//  drawText(95,100,"ppm", WHITE, 1);
+  drawText(20,100, "CO2", WHITE, 1);
+  drawText(40,100, _eco2, WHITE, 3);
+  drawText(95,100,"ppm", WHITE, 1);
 }
 
 void screenDust() {
-  Serial.println("dust screen");
   
-//  extern int dustIndex;
-//  extern float dustcon;
-//
-//  char _dustcon[6];     // float to char conversion
-//  
-//  dtostrf(dustcon, 2, 0, _dustcon);
-//
-//  if (dustIndex < 1) {
-//    tft.drawBitmap(24, 12, gasIconLg, 80, 80, BLACK, GREEN);
-//  } else if (dustIndex = 1) {
-//    tft.drawBitmap(24, 12, gasIconLg, 80, 80, BLACK, YELLOW);
-//  } else if (dustIndex = 2) {
-//    tft.drawBitmap(24, 12, gasIconLg, 80, 80, BLACK, ORANGE);
-//  } else {
-//    tft.drawBitmap(24, 12, gasIconLg, 80, 80, BLACK, RED);
-//  }
-//  
-//  drawText(20,100, "PM2.5: ", WHITE, 1);
-//  drawText(45,100, _dustcon, WHITE, 3);
-//  drawText(85,100,"um/m3", WHITE, 1);
+  char _dustcon[6];     // float to char conversion
+  dtostrf(aveSensorData[4], 2, 0, _dustcon);
+
+  tft.drawBitmap(24, 12, dustIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[4]));
+  
+  drawText(20,100, "PM2.5: ", WHITE, 1);
+  drawText(45,100, _dustcon, WHITE, 3);
+  drawText(85,100,"um/m3", WHITE, 1);
 }
 
 void screenVoc() {
-  Serial.println("voc screen");
   
-//  extern float tvoc;
-//
-//  char _tvoc[6];     // float to char conversion
-//  
-//  dtostrf(tvoc, 2, 0, _tvoc);
-//
-//  drawText(20,100, "VOC", WHITE, 1);
-//  drawText(40,100, _tvoc, WHITE, 3);
-//  drawText(92,100,"ppb", WHITE, 1);
+  char _tvoc[6];     // float to char conversion
+  dtostrf(aveSensorData[5], 2, 0, _tvoc);
+
+  tft.drawBitmap(24, 12, vocIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[5]));
+
+  drawText(20,100, "VOC", WHITE, 1);
+  drawText(40,100, _tvoc, WHITE, 3);
+  drawText(92,100,"ppb", WHITE, 1);
 }
 
 void screenLight() {
-  Serial.println("light screen");
+  char _lux[6];     // float to char conversion
+  dtostrf(aveSensorData[6], 2, 0, _lux);
+
+  tft.drawBitmap(24, 12, lightIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[6]));
   
-//  extern float lux;
-//
-//  char _lux[6];     // float to char conversion
-//  
-//  dtostrf(lux, 2, 0, _lux);
-//  
-//  drawText(20,100, "Light ", WHITE, 1);
-//  drawText(45,100, _lux, WHITE, 3);
-//  drawText(92,100,"lux", WHITE, 2);
+  drawText(20,100, "Light ", WHITE, 1);
+  drawText(45,100, _lux, WHITE, 3);
+  drawText(92,100,"lux", WHITE, 2);
 }
 
 void screenSound() {
-  Serial.println("sound screen");
+  char _sound[6];     // float to char conversion
+  dtostrf(aveSensorData[7], 2, 0, _sound);
+
+  tft.drawBitmap(24, 12, soundIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[7]));
   
-//  extern float sound;
-//
-//  char _sound[6];     // float to char conversion
-//  
-//  dtostrf(sound, 2, 0, _sound);
-//  
-//  drawText(20,100, "Sound", WHITE, 1);
-//  drawText(45,100, _sound, WHITE, 3);
-//  drawText(95,100," ", WHITE, 2);
+  drawText(20,100, "Sound", WHITE, 1);
+  drawText(45,100, _sound, WHITE, 3);
+  drawText(95,100," ", WHITE, 2);
 }
 
 void histIndex() {
@@ -329,12 +247,3 @@ void drawText(int x, int y, char *text, uint16_t color, int size) {
   tft.print(text);
   
 } /* void drawText() */
-
-
-void wifiStatus() {
-  if (WiFi.status() == 3) {
-    tft.fillCircle(64,5,2, GREEN);
-  } else {
-    tft.fillCircle(64,5,2, RED);
-  }
-}

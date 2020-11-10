@@ -27,6 +27,8 @@
 
 extern Adafruit_ST7735 tft;
 extern float aveDust, aveCo2, aveVoc, aveTemperature, aveHumidity, aveLight, aveSound;
+extern float aveSensorIAQIndex[];
+extern float aveSensorData[];
 //extern float oldDustcon, oldEco2, oldHumidity, oldTemperature;
 //extern int oldVirus;
 

@@ -5,6 +5,22 @@ Adafruit_SGP30 sgp;
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 Adafruit_SHTC3 shtc3 = Adafruit_SHTC3();
 
+
+
+
+float currSensorData[8];
+const int sensorQty = (sizeof(currSensorData)/sizeof(currSensorData[0]));
+float aveSensorData[sensorQty];
+int aveSensorIAQIndex[sensorQty];
+int readSensorIndex = 0;
+float readSensorTotal[sensorQty];
+float dataSensorArray[smoothDataInterval][sensorQty];
+
+
+
+
+
+
 //float currDust, currCo2, currVoc, currTemperature, currHumidity, currLight, currSound;        //FIXME: Remove
 int counter = 0;      //change VOC sensor to baseline via millis()
 
@@ -12,7 +28,6 @@ int counter = 0;      //change VOC sensor to baseline via millis()
 const int pinSound = A3;
 const int pinDustVolt = A0;
 const int pinDustLed = 1;
-
 
 
 
@@ -55,22 +70,101 @@ void beginSensors() {
 
 
 
-/////////////////////////////////
-// Initiate Sensor Data Collection
-/////////////////////////////////
 
-void readSensors() {
-  getVoc();
-  getCo2();
-  getLight();
-  getSound();
-  getTemperature();
-  getHumidity();
-  getDust();
+float linearRegressionIAQ [][2] = {
+    {03.30137, 0.06849},              // Virus Index
+    {0.134741784, -9.335680751},      // Temperature
+    {0.1, -5},                        // Humidity
+    {0.001640832, 0.152173913},       // CO2
+    {0.001331435, 0.67023051},        // VOC
+    {0.005246116, 0.771539296},       // Dust
+    {-0.007215529, 3.613119143},      // Light
+    {0.066435185, -2.34375}           // Sound
+};
 
-//  currSensorData[] = {currVirusIndex, currTemperature, currHumidity, currCo2, currVoc, currDust, currLight, currSound};
 
-} /* end readSensors() */
+/** 
+ *  Data Smooting Functions
+ *  
+ *  Averages the sensor data collected over a period
+ *  
+ *  @param 
+ *  @param
+ *  
+ */
+
+ 
+void initSmoothSensorData() {
+  for (int i =0; i < smoothDataInterval; i++) {
+    for (int j =0; j < sensorQty; j++) {
+      dataSensorArray[i][j] = 0;
+    }
+  }
+
+  for (int k =0; k < sensorQty; k++) {
+      readSensorTotal[k] = 0;
+    }
+  
+}
+
+float (*getSensorCurr[])() = {getVirusIndex, getTemperature, getHumidity, getCo2, getVoc, getDust, getLight, getSound};
+
+void smoothSensorData() {
+  
+  for (int i=0; i < sensorQty; i++) {
+    currSensorData[i] = getSensorCurr[i]();     //Debug only - printSensor();
+    // subtract the last reading:
+    readSensorTotal[i] = readSensorTotal[i] - dataSensorArray[readSensorIndex][i];
+    // read from the sensor:
+    dataSensorArray[readSensorIndex][i] = getSensorCurr[i]();
+    // add the reading to the readSensorTotal:
+    readSensorTotal[i] = readSensorTotal[i] + dataSensorArray[readSensorIndex][i];
+    
+     
+    // if we're at the end of the array...
+    if (readSensorIndex >= smoothDataInterval) {
+      // ...wrap around to the beginning:
+      readSensorIndex = 0;      
+    } //close if (readSensorIndex....)
+    
+      aveSensorData[i] = readSensorTotal[i] / smoothDataInterval;
+
+      if (aveSensorData[i] < 0) {
+        aveSensorData[i] = 0;
+      }
+      
+      aveSensorIAQIndex[i] = calculateSensorIndex (linearRegressionIAQ [i][0], linearRegressionIAQ [i][1], aveSensorData[i]);
+  } //close i
+  // advance to the next position in the array:
+  readSensorIndex++; 
+}
+
+
+
+int calculateSensorIndex (float a, float b, float x) {        // y = ax + b
+  float y = 0;
+  
+  y = abs((a*x) + b);
+  return y;
+}
+
+
+
+
+
+///////////////////////////////////         //FIXME: not is use
+//// Initiate Sensor Data Collection
+///////////////////////////////////
+//
+//void readSensors() {
+//  getVoc();
+//  getCo2();
+//  getLight();
+//  getSound();
+//  getTemperature();
+//  getHumidity();
+//  getDust();
+//} /* end readSensors() */
 
 
 
@@ -86,7 +180,7 @@ void printSensors() {
     Serial.print("VOC: "); Serial.print(currSensorData[4]); Serial.println(" ppb");
     Serial.print("Dust: "); Serial.print(currSensorData[5]); Serial.println(" ug/m3");  
     Serial.print("Lux: "); Serial.print(currSensorData[6]); Serial.println( " lux");
-    Serial.print("Sound: "); Serial.println(currSensorData[7]);
+    Serial.print("Sound: "); Serial.print(currSensorData[7]); Serial.println( " dB");
 } /* end printSensors() */
 
 
@@ -97,44 +191,61 @@ void printSensors() {
 void printSensorsAve() {
 
     Serial.println("/////////////////////////////////");
-    Serial.print("Virus Index: "); Serial.println(aveVirusIndex);
-    Serial.print("Temp Average: "); Serial.print(aveTemperature); Serial.println(" F");
-    Serial.print("Humidity Average: "); Serial.print(aveHumidity); Serial.println("%");
-    Serial.print("CO2 Average: "); Serial.print(aveCo2); Serial.println( " ppm");
-    Serial.print("VOC Average: "); Serial.print(aveVoc); Serial.println(" ppb");
-    Serial.print("Dust Average: "); Serial.print(aveDust); Serial.println(" ug/m3");  
-    Serial.print("Lux Average: "); Serial.print(aveLight); Serial.println( " lux");
-    Serial.print("Sound Average: "); Serial.println(aveSound);
+    Serial.print("Virus Index: "); Serial.println(aveSensorData[0]);
+    Serial.print("Temp Average: "); Serial.print(aveSensorData[1]); Serial.println(" F");
+    Serial.print("Humidity Average: "); Serial.print(aveSensorData[2]); Serial.println("%");
+    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
+    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
+    Serial.print("Dust Average: "); Serial.print(aveSensorData[5]); Serial.println(" ug/m3");  
+    Serial.print("Lux Average: "); Serial.print(aveSensorData[6]); Serial.println( " lux");
+    Serial.print("Sound Average: "); Serial.println(aveSensorData[7]);
     Serial.println("/////////////////////////////////");
 } /* end printSensors() */
 
+void printSafeIndex() {
+
+    Serial.println("/////////////////////////////////");
+    Serial.print("Virus Index: "); Serial.println(aveSensorIAQIndex[0]);
+    Serial.print("Temp Average: "); Serial.print(aveSensorIAQIndex[1]); Serial.println(" F");
+    Serial.print("Humidity Average: "); Serial.print(aveSensorIAQIndex[2]); Serial.println("%");
+    Serial.print("CO2 Average: "); Serial.print(aveSensorIAQIndex[3]); Serial.println( " ppm");
+    Serial.print("VOC Average: "); Serial.print(aveSensorIAQIndex[4]); Serial.println(" ppb");
+    Serial.print("Dust Average: "); Serial.print(aveSensorIAQIndex[5]); Serial.println(" ug/m3");  
+    Serial.print("Lux Average: "); Serial.print(aveSensorIAQIndex[6]); Serial.println( " lux");
+    Serial.print("Sound Average: "); Serial.println(aveSensorIAQIndex[7]);
+    Serial.println("/////////////////////////////////");
+} /* end printSensors() */
 
 
 /////////////////////////////////
 // POSTING
 /////////////////////////////////
 
-float preDust = 0;
 
 /////////////////////////////////
 // Post Sensors to Cloud
 /////////////////////////////////
+
+float preDust = 0;
+
+
+
 void postSensorsToCloud() {
     
-    aveVirusIndex = sensorArrayAve[0];
-    aveTemperature = sensorArrayAve[1];
-    aveHumidity = sensorArrayAve[2];
-    aveCo2 = sensorArrayAve[3];
-    aveVoc = sensorArrayAve[4];
+    aveVirusIndex = aveSensorData[0];
+    aveTemperature = aveSensorData[1];
+    aveHumidity = aveSensorData[2];
+    aveCo2 = aveSensorData[3];
+    aveVoc = aveSensorData[4];
     triggerAveDustToPost();
-    aveLight = sensorArrayAve[6];
-    aveSound = sensorArrayAve[7];
+    aveLight = aveSensorData[6];
+    aveSound = aveSensorData[7];
 }
 /////////////////////////////////
 // Trigger Dust Change for Posting
 /////////////////////////////////
 void triggerAveDustToPost() {
-    float sampleDust = sensorArrayAve[5];
+    float sampleDust = aveSensorData[5];
 
     if (sampleDust <= 0.01 && preDust == 0) {
         aveDust = 0.1;
@@ -150,6 +261,16 @@ void triggerAveDustToPost() {
 /////////////////////////////////
 
 
+
+float getVirusIndex() {
+  float currSample = 0;
+  
+  for (int i=1; i < sensorQty; i++) {
+    aveSensorData[i] + currSample;
+  }
+
+  return currSample;
+}
 
 /////////////////////////////////
 // GET SENSOR DATA 
@@ -268,14 +389,18 @@ float getSound() {
   
   long sum = 0;
   
-    for(int i=0; i<32; i++) {
-        sum += analogRead(pinSound);
-    }
- 
-    sum >>= 5;
+  for(int i=0; i<32; i++) {
+      sum += analogRead(pinSound);
+  }
 
-    float currSample = sum;
-    return currSample;
+  sum >>= 5;
+
+//  long sum = analogRead(pinSound);
+//  sum = (adc+83.2073)/11.003;         //rough conversion formula: https://circuitdigest.com/microcontroller-projects/arduino-sound-level-measurement
+    
+
+  int currSample = sum;
+  return currSample;
 }
 // end SOUND
 /////////////////////////////////
@@ -309,11 +434,6 @@ float getHumidity() {
 }
 // end TEMPERATURE AND HUMIDITY 
 /////////////////////////////////
-
-float getVirusIndex() {
-  float currSample = 0;
-  return currSample;
-}
 
 
 /////////////////////////////////

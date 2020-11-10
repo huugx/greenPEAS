@@ -13,11 +13,11 @@ INDOOR ENVIRONMENTAL SENSOR
 /* Headers */
 #include "thing_properties.h"
 #include "display_helpers.h"
-#include "data_helpers.h"
 #include "sensor_helpers.h"
 
 /* Global Variables */
-int sampleDataInterval;
+int postSensorCounter; 
+//int sampleSensorCounter;
 //unsigned long lastPostTime;
 unsigned long lastReadInterval;
 const unsigned long readInterval = 250;
@@ -25,9 +25,10 @@ const unsigned long readInterval = 250;
 //const unsigned long displayInterval = 0;
 
 
+
 void setup() {
   Serial.begin(115200);
-  while(Serial == false){}; 
+  while(Serial == false){};                           //TODO: remove
   
   initProperties();                                   // Initialize Sensors (see thingProperties.h)
   ArduinoCloud.begin(ArduinoIoTPreferredConnection);  // Connect to Arduino IoT Cloud
@@ -35,30 +36,35 @@ void setup() {
   initTFT();
   beginSensors();
   initSmoothSensorData();
-
+ 
+  
   delay(2500);
 }
 
 
 void loop() {
-  
+
   debounceButton();
+  
+//  int adc = analogRead(A3);
+//  Serial.println(adc);
+
   
   if ((millis() - lastReadInterval) >= readInterval) {
     wifiStatus();
-    readSensors();
-    smoothSensorData();
+    smoothSensorData();       //read and average sensors
+    postSensorCounter++;      //steps until cloud post
+    printSensors();           //DEBUG
     lastReadInterval = millis();
-    sampleDataInterval++;
   }
  
-  if (sampleDataInterval >= smoothDataInterval) {
-//    printSensorsAve();
-    postSensorsToCloud();
+  if (postSensorCounter >= smoothDataInterval) {
+    postSensorsToCloud();       //convert array to variables - ensures only post on change
+//    printSensorsAve();          
+    printSafeIndex();
     ArduinoCloud.update();
-    sampleDataInterval = 0;
+    postSensorCounter = 0;
   }
-
 }
 
 
