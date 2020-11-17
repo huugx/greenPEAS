@@ -16,7 +16,7 @@
 #define ORANGE   0xFCA0
 #define YELLOW   0xFFE0
 #define WHITE    0xFFFF
-#define GREY     0xAD75
+#define GREY     0x39E7
 
 
 #include <avr/dtostrf.h>
@@ -29,6 +29,7 @@ extern Adafruit_ST7735 tft;
 extern float aveDust, aveCo2, aveVoc, aveTemperature, aveHumidity, aveLight, aveSound;
 extern float aveSensorIAQIndex[];
 extern float aveSensorData[];
+extern float histogramSensorIAQIndex[];
 //extern float oldDustcon, oldEco2, oldHumidity, oldTemperature;
 //extern int oldVirus;
 
@@ -50,5 +51,6 @@ void displayValuesOnTFT();
 void drawText(int x, int y, char *text, uint16_t color, int size);
 void wifiStatus();
 void debounceButton();
+void updateValuesOnTFT();
 
 #endif /* DISPLAY_HELPERS_H */

@@ -11,14 +11,18 @@ Adafruit_SHTC3 shtc3 = Adafruit_SHTC3();
 float currSensorData[8];
 const int sensorQty = (sizeof(currSensorData)/sizeof(currSensorData[0]));
 float aveSensorData[sensorQty];
-int aveSensorIAQIndex[sensorQty];
+float aveSensorIAQIndex[sensorQty];
+
 int readSensorIndex = 0;
+int storeIAQIndexCounter = 0;
+float storeIAQIndexTotal = 0;
+int storeHistogramIAQIndexCounter = 0;
+int avePrevHourIAQIndex = 0;
+
 float readSensorTotal[sensorQty];
 float dataSensorArray[smoothDataInterval][sensorQty];
-
-
-
-
+float prevHourSensorIAQIndex[prevHourDataInterval];
+float histogramSensorIAQIndex[histogramDataInterval];
 
 
 //float currDust, currCo2, currVoc, currTemperature, currHumidity, currLight, currSound;        //FIXME: Remove
@@ -72,7 +76,7 @@ void beginSensors() {
 
 
 float linearRegressionIAQ [][2] = {
-    {03.30137, 0.06849},              // Virus Index
+    {0.30137, 0.06849},              // Virus Index
     {0.134741784, -9.335680751},      // Temperature
     {0.1, -5},                        // Humidity
     {0.001640832, 0.152173913},       // CO2
@@ -104,10 +108,19 @@ void initSmoothSensorData() {
   for (int k =0; k < sensorQty; k++) {
       readSensorTotal[k] = 0;
     }
-  
+
+  for (int k =0; k < prevHourDataInterval; k++) {
+      prevHourSensorIAQIndex[k] = 0;
+    }
+
+  for (int k =0; k < histogramDataInterval; k++) {
+      histogramSensorIAQIndex[k] = -1;
+    }
 }
 
+
 float (*getSensorCurr[])() = {getVirusIndex, getTemperature, getHumidity, getCo2, getVoc, getDust, getLight, getSound};
+
 
 void smoothSensorData() {
   
@@ -119,52 +132,78 @@ void smoothSensorData() {
     dataSensorArray[readSensorIndex][i] = getSensorCurr[i]();
     // add the reading to the readSensorTotal:
     readSensorTotal[i] = readSensorTotal[i] + dataSensorArray[readSensorIndex][i];
-    
-     
-    // if we're at the end of the array...
-    if (readSensorIndex >= smoothDataInterval) {
-      // ...wrap around to the beginning:
-      readSensorIndex = 0;      
-    } //close if (readSensorIndex....)
-    
-      aveSensorData[i] = readSensorTotal[i] / smoothDataInterval;
+      
+    aveSensorData[i] = readSensorTotal[i] / smoothDataInterval;
 
-      if (aveSensorData[i] < 0) {
-        aveSensorData[i] = 0;
-      }
+    if (aveSensorData[i] < 0) {
+      aveSensorData[i] = 0;
+    }
       
       aveSensorIAQIndex[i] = calculateSensorIndex (linearRegressionIAQ [i][0], linearRegressionIAQ [i][1], aveSensorData[i]);
-  } //close i
+  } //close i  
   // advance to the next position in the array:
   readSensorIndex++; 
+
+    // if we're at the end of the array...
+  if (readSensorIndex >= smoothDataInterval) {
+    // ...wrap around to the beginning:
+    readSensorIndex = 0;      
+  } //close if (readSensorIndex....)
+
+  storeIAQIndex();
+    
 }
 
 
+void storeIAQIndex() {
+   
+  storeIAQIndexTotal = storeIAQIndexTotal - prevHourSensorIAQIndex[storeIAQIndexCounter];
 
-int calculateSensorIndex (float a, float b, float x) {        // y = ax + b
+  prevHourSensorIAQIndex[storeIAQIndexCounter] = aveSensorIAQIndex[0];
+
+  storeIAQIndexTotal = storeIAQIndexTotal + prevHourSensorIAQIndex[storeIAQIndexCounter];
+  
+  storeIAQIndexCounter++;
+
+  if (storeIAQIndexCounter >= prevHourDataInterval) {
+      storeIAQIndexCounter = 0;        
+  }  
+
+  avePrevHourIAQIndex = storeIAQIndexTotal / prevHourDataInterval;
+}
+
+
+float calculateSensorIndex (float a, float b, float x) {        // y = ax + b
   float y = 0;
   
   y = abs((a*x) + b);
-  return y;
+
+
+  return y; 
 }
 
+void storeHistogramIndex() {
 
+  for (int i = 1; i < histogramDataInterval; i++) {
+    histogramSensorIAQIndex[histogramDataInterval-(i)] = histogramSensorIAQIndex[histogramDataInterval-(i+1)];
+  }
+  
+  histogramSensorIAQIndex[0] = avePrevHourIAQIndex;
+  
+  for (int i = 0; i < histogramDataInterval; i++) {
+    Serial.println(histogramSensorIAQIndex[i]);
+  }
+  
+   
+//  histogramSensorIAQIndex[storeHistogramIAQIndexCounter] = avePrevHourIAQIndex;
+//  storeHistogramIAQIndexCounter++;
+//  
+//  if (storeHistogramIAQIndexCounter >= histogramDataInterval) {
+//      storeHistogramIAQIndexCounter = 0;        
+//  }  
+  
+}
 
-
-
-///////////////////////////////////         //FIXME: not is use
-//// Initiate Sensor Data Collection
-///////////////////////////////////
-//
-//void readSensors() {
-//  getVoc();
-//  getCo2();
-//  getLight();
-//  getSound();
-//  getTemperature();
-//  getHumidity();
-//  getDust();
-//} /* end readSensors() */
 
 
 
@@ -192,27 +231,27 @@ void printSensorsAve() {
 
     Serial.println("/////////////////////////////////");
     Serial.print("Virus Index: "); Serial.println(aveSensorData[0]);
-    Serial.print("Temp Average: "); Serial.print(aveSensorData[1]); Serial.println(" F");
-    Serial.print("Humidity Average: "); Serial.print(aveSensorData[2]); Serial.println("%");
-    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
-    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
-    Serial.print("Dust Average: "); Serial.print(aveSensorData[5]); Serial.println(" ug/m3");  
-    Serial.print("Lux Average: "); Serial.print(aveSensorData[6]); Serial.println( " lux");
-    Serial.print("Sound Average: "); Serial.println(aveSensorData[7]);
+//    Serial.print("Temp Average: "); Serial.print(aveSensorData[1]); Serial.println(" F");
+//    Serial.print("Humidity Average: "); Serial.print(aveSensorData[2]); Serial.println("%");
+//    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
+//    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
+//    Serial.print("Dust Average: "); Serial.print(aveSensorData[5]); Serial.println(" ug/m3");  
+//    Serial.print("Lux Average: "); Serial.print(aveSensorData[6]); Serial.println( " lux");
+//    Serial.print("Sound Average: "); Serial.println(aveSensorData[7]);
     Serial.println("/////////////////////////////////");
 } /* end printSensors() */
 
 void printSafeIndex() {
 
     Serial.println("/////////////////////////////////");
-    Serial.print("Virus Index: "); Serial.println(aveSensorIAQIndex[0]);
-    Serial.print("Temp Average: "); Serial.print(aveSensorIAQIndex[1]); Serial.println(" F");
-    Serial.print("Humidity Average: "); Serial.print(aveSensorIAQIndex[2]); Serial.println("%");
-    Serial.print("CO2 Average: "); Serial.print(aveSensorIAQIndex[3]); Serial.println( " ppm");
-    Serial.print("VOC Average: "); Serial.print(aveSensorIAQIndex[4]); Serial.println(" ppb");
-    Serial.print("Dust Average: "); Serial.print(aveSensorIAQIndex[5]); Serial.println(" ug/m3");  
-    Serial.print("Lux Average: "); Serial.print(aveSensorIAQIndex[6]); Serial.println( " lux");
-    Serial.print("Sound Average: "); Serial.println(aveSensorIAQIndex[7]);
+    Serial.print("Virus Index: "); Serial.println(aveSensorData[0]);
+//    Serial.print("Temp Average: "); Serial.println(aveSensorIAQIndex[1]);
+//    Serial.print("Humidity Average: "); Serial.println(aveSensorIAQIndex[2]);
+//    Serial.print("CO2 Average: "); Serial.println(aveSensorIAQIndex[3]);
+//    Serial.print("VOC Average: "); Serial.println(aveSensorIAQIndex[4]);
+//    Serial.print("Dust Average: "); Serial.println(aveSensorIAQIndex[5]);
+//    Serial.print("Lux Average: "); Serial.println(aveSensorIAQIndex[6]);
+//    Serial.print("Sound Average: "); Serial.println(aveSensorIAQIndex[7]);
     Serial.println("/////////////////////////////////");
 } /* end printSensors() */
 
@@ -264,10 +303,8 @@ void triggerAveDustToPost() {
 
 float getVirusIndex() {
   float currSample = 0;
-  
-  for (int i=1; i < sensorQty; i++) {
-    aveSensorData[i] + currSample;
-  }
+
+  currSample = aveSensorIAQIndex[1] + aveSensorIAQIndex[2] + aveSensorIAQIndex[3] + aveSensorIAQIndex[5];
 
   return currSample;
 }

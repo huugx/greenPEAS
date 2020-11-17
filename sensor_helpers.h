@@ -5,7 +5,12 @@
 #include "Adafruit_VEML7700.h"
 #include "Adafruit_SHTC3.h"
 
+extern const unsigned long readInterval;
+
 const int smoothDataInterval = 20;
+const int prevHourDataInterval = 300;       // Average past hour of readings (3600)/(60/(readInterval*smoothDataInterval)/1000)
+const int histogramDataInterval = 11;       // Show 10 hours on the histogram
+
 
 extern float aveVirusIndex, aveTemperature, aveHumidity, aveCo2, aveVoc, aveDust, aveLight, aveSound;
 
@@ -29,12 +34,12 @@ uint32_t getAbsoluteHumidity(float temperature, float humidity);
 void triggerAveDustToPost();
 void getVocCo2Baseline();
 void getAbsoluteHumidityCompensation();
-
-
+void storeIAQIndex();
+void storeHistogramIndex();
 
 void initSmoothSensorData();
 void smoothSensorData(); 
-int calculateSensorIndex (float a, float b, float x);
+float calculateSensorIndex (float a, float b, float x);
 
 
 #endif /* SENSOR_HELPERS_H */

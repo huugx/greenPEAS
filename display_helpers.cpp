@@ -101,7 +101,9 @@ int colorPicker (int index) {
   int color;
   index = round(index);
   
-  if (index == 0) {
+  if (index == -1) {
+      color=GREY;
+  } else if (index == 0) {
       color=GREEN;
   } else if (index == 1) {
       color=YELLOW;
@@ -126,12 +128,17 @@ void displayValuesOnTFT() {
   }
 }
 
+void updateValuesOnTFT() {
+  screenMain();
+}
+
 
 void screenMain() {
   
   char _virusIndex[6];      // float to char conversion
   dtostrf(aveSensorData[0], 1, 0, _virusIndex);
 
+  histDraw();
   tft.fillCircle(64,62,24, colorPicker(aveSensorIAQIndex[0]));
 
   tft.drawBitmap(0,0, tempIcon, 35, 35, colorPicker(aveSensorIAQIndex[1]));
@@ -143,6 +150,17 @@ void screenMain() {
   drawText(63,53,"/10", BLACK,1);
   drawText(50,63,"VIRUS", BLACK,1);
   drawText(50,73,"SCORE", BLACK,1);  
+
+  drawText(5,55,"-9", ST77XX_WHITE,1);
+  drawText(5,65,"HR", ST77XX_WHITE,1);
+
+  drawText(58,4,"-6", ST77XX_WHITE,1);
+  drawText(58,14,"HR", ST77XX_WHITE,1);
+
+  drawText(112,55,"-3", ST77XX_WHITE,1);
+  drawText(112,65,"HR", ST77XX_WHITE,1);
+
+  drawText(58,107,"NOW", ST77XX_WHITE,1);
   
 } /* void displayValuesOnTFT() */
 
@@ -233,10 +251,18 @@ void histIndex() {
 
 }
 
-
 void histDraw() {
-
-
+  tft.drawBitmap(0, 0, hist0, 128, 128, colorPicker(histogramSensorIAQIndex[0]));
+  tft.drawBitmap(0, 0, hist1, 128, 128, colorPicker(histogramSensorIAQIndex[1]));
+  tft.drawBitmap(0, 0, hist2, 128, 128, colorPicker(histogramSensorIAQIndex[2]));
+  tft.drawBitmap(0, 0, hist3, 128, 128, colorPicker(histogramSensorIAQIndex[3]));
+  tft.drawBitmap(0, 0, hist4, 128, 128, colorPicker(histogramSensorIAQIndex[4]));
+  tft.drawBitmap(0, 0, hist5, 128, 128, colorPicker(histogramSensorIAQIndex[5]));
+  tft.drawBitmap(0, 0, hist6, 128, 128, colorPicker(histogramSensorIAQIndex[6]));
+  tft.drawBitmap(0, 0, hist7, 128, 128, colorPicker(histogramSensorIAQIndex[7]));
+  tft.drawBitmap(0, 0, hist8, 128, 128, colorPicker(histogramSensorIAQIndex[8]));
+  tft.drawBitmap(0, 0, hist9, 128, 128, colorPicker(histogramSensorIAQIndex[9]));
+  tft.drawBitmap(0, 0, hist10, 128, 128, colorPicker(histogramSensorIAQIndex[10]));
 }
 
 void drawText(int x, int y, char *text, uint16_t color, int size) {

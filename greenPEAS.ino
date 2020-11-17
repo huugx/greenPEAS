@@ -20,7 +20,9 @@ int postSensorCounter;
 //int sampleSensorCounter;
 //unsigned long lastPostTime;
 unsigned long lastReadInterval;
-const unsigned long readInterval = 250;
+const unsigned long readInterval = 250;             //DO NOT CHANGE
+unsigned long lastHistogramUpdate = 0;
+const unsigned long histogramInterval = 3600000;  //FIXME: CHANGE TO 3600000
 //unsigned long aveSensorReadings = (postInterval/readInterval) - 1;
 //const unsigned long displayInterval = 0;
 
@@ -43,7 +45,6 @@ void setup() {
 
 
 void loop() {
-
   debounceButton();
   
 //  int adc = analogRead(A3);
@@ -54,7 +55,7 @@ void loop() {
     wifiStatus();
     smoothSensorData();       //read and average sensors
     postSensorCounter++;      //steps until cloud post
-    printSensors();           //DEBUG
+//    printSensors();           //DEBUG
     lastReadInterval = millis();
   }
  
@@ -62,9 +63,17 @@ void loop() {
     postSensorsToCloud();       //convert array to variables - ensures only post on change
 //    printSensorsAve();          
     printSafeIndex();
+    updateValuesOnTFT();
     ArduinoCloud.update();
     postSensorCounter = 0;
   }
+
+  if ((millis() - lastHistogramUpdate) >= histogramInterval) {
+    storeHistogramIndex();
+//    histDraw();
+    lastHistogramUpdate = millis();
+  }
+  
 }
 
 
