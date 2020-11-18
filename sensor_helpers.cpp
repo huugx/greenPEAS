@@ -141,6 +141,7 @@ void smoothSensorData() {
       
       aveSensorIAQIndex[i] = calculateSensorIndex (linearRegressionIAQ [i][0], linearRegressionIAQ [i][1], aveSensorData[i]);
   } //close i  
+  
   // advance to the next position in the array:
   readSensorIndex++; 
 
@@ -193,15 +194,6 @@ void storeHistogramIndex() {
   for (int i = 0; i < histogramDataInterval; i++) {
     Serial.println(histogramSensorIAQIndex[i]);
   }
-  
-   
-//  histogramSensorIAQIndex[storeHistogramIAQIndexCounter] = avePrevHourIAQIndex;
-//  storeHistogramIAQIndexCounter++;
-//  
-//  if (storeHistogramIAQIndexCounter >= histogramDataInterval) {
-//      storeHistogramIAQIndexCounter = 0;        
-//  }  
-  
 }
 
 
@@ -212,14 +204,14 @@ void storeHistogramIndex() {
 /////////////////////////////////
 // Print Current Sensor Data
 void printSensors() {
-    Serial.print("Virus Index: "); Serial.println(currSensorData[0]);
-    Serial.print("Temp: "); Serial.print(currSensorData[1]); Serial.println(" F");
-    Serial.print("Humidity: "); Serial.print(currSensorData[2]); Serial.println("%");
+//    Serial.print("Virus Index: "); Serial.println(currSensorData[0]);
+//    Serial.print("Temp: "); Serial.print(currSensorData[1]); Serial.println(" F");
+//    Serial.print("Humidity: "); Serial.print(currSensorData[2]); Serial.println("%");
     Serial.print("CO2: "); Serial.print(currSensorData[3]); Serial.println( " ppm");
     Serial.print("VOC: "); Serial.print(currSensorData[4]); Serial.println(" ppb");
-    Serial.print("Dust: "); Serial.print(currSensorData[5]); Serial.println(" ug/m3");  
-    Serial.print("Lux: "); Serial.print(currSensorData[6]); Serial.println( " lux");
-    Serial.print("Sound: "); Serial.print(currSensorData[7]); Serial.println( " dB");
+//    Serial.print("Dust: "); Serial.print(currSensorData[5]); Serial.println(" ug/m3");  
+//    Serial.print("Lux: "); Serial.print(currSensorData[6]); Serial.println( " lux");
+//    Serial.print("Sound: "); Serial.print(currSensorData[7]); Serial.println( " dB");
 } /* end printSensors() */
 
 
@@ -230,11 +222,11 @@ void printSensors() {
 void printSensorsAve() {
 
     Serial.println("/////////////////////////////////");
-    Serial.print("Virus Index: "); Serial.println(aveSensorData[0]);
+//    Serial.print("Virus Index: "); Serial.println(aveSensorData[0]);
 //    Serial.print("Temp Average: "); Serial.print(aveSensorData[1]); Serial.println(" F");
 //    Serial.print("Humidity Average: "); Serial.print(aveSensorData[2]); Serial.println("%");
-//    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
-//    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
+    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
+    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
 //    Serial.print("Dust Average: "); Serial.print(aveSensorData[5]); Serial.println(" ug/m3");  
 //    Serial.print("Lux Average: "); Serial.print(aveSensorData[6]); Serial.println( " lux");
 //    Serial.print("Sound Average: "); Serial.println(aveSensorData[7]);

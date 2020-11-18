@@ -129,7 +129,9 @@ void displayValuesOnTFT() {
 }
 
 void updateValuesOnTFT() {
-  screenMain();
+  if (buttonPos == 0) {
+    screenMain();
+  }
 }
 
 
@@ -201,28 +203,28 @@ void screenCo2() {
   drawText(95,100,"ppm", WHITE, 1);
 }
 
-void screenDust() {
-  
-  char _dustcon[6];     // float to char conversion
-  dtostrf(aveSensorData[4], 2, 0, _dustcon);
-
-  tft.drawBitmap(24, 12, dustIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[4]));
-  
-  drawText(20,100, "PM2.5: ", WHITE, 1);
-  drawText(45,100, _dustcon, WHITE, 3);
-  drawText(85,100,"um/m3", WHITE, 1);
-}
-
 void screenVoc() {
   
   char _tvoc[6];     // float to char conversion
   dtostrf(aveSensorData[5], 2, 0, _tvoc);
 
-  tft.drawBitmap(24, 12, vocIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[5]));
+  tft.drawBitmap(24, 12, vocIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[4]));
 
   drawText(20,100, "VOC", WHITE, 1);
   drawText(40,100, _tvoc, WHITE, 3);
   drawText(92,100,"ppb", WHITE, 1);
+}
+
+void screenDust() {
+  
+  char _dustcon[6];     // float to char conversion
+  dtostrf(aveSensorData[4], 2, 0, _dustcon);
+
+  tft.drawBitmap(24, 12, dustIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[5]));
+  
+  drawText(20,100, "PM2.5: ", WHITE, 1);
+  drawText(45,100, _dustcon, WHITE, 3);
+  drawText(85,100,"um/m3", WHITE, 1);
 }
 
 void screenLight() {
@@ -247,9 +249,6 @@ void screenSound() {
   drawText(95,100," ", WHITE, 2);
 }
 
-void histIndex() {
-
-}
 
 void histDraw() {
   tft.drawBitmap(0, 0, hist0, 128, 128, colorPicker(histogramSensorIAQIndex[0]));

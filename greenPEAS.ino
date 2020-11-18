@@ -30,7 +30,7 @@ const unsigned long histogramInterval = 3600000;  //FIXME: CHANGE TO 3600000
 
 void setup() {
   Serial.begin(115200);
-  while(Serial == false){};                           //TODO: remove
+//  while(Serial == false){};                           //TODO: remove
   
   initProperties();                                   // Initialize Sensors (see thingProperties.h)
   ArduinoCloud.begin(ArduinoIoTPreferredConnection);  // Connect to Arduino IoT Cloud
@@ -41,6 +41,7 @@ void setup() {
  
   
   delay(2500);
+  clearTFT();
 }
 
 
@@ -55,14 +56,14 @@ void loop() {
     wifiStatus();
     smoothSensorData();       //read and average sensors
     postSensorCounter++;      //steps until cloud post
-//    printSensors();           //DEBUG
+    printSensors();           //DEBUG
     lastReadInterval = millis();
   }
  
   if (postSensorCounter >= smoothDataInterval) {
     postSensorsToCloud();       //convert array to variables - ensures only post on change
-//    printSensorsAve();          
-    printSafeIndex();
+    printSensorsAve();          
+//    printSafeIndex();
     updateValuesOnTFT();
     ArduinoCloud.update();
     postSensorCounter = 0;

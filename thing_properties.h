@@ -7,11 +7,11 @@
 
 const char THING_ID[] = "82a22de3-4fa9-44e7-a127-2949b1e37a84";
 
-const char SSID[]     = "dial_Z";    // Network SSID (name)
+const char SSID[]     = "dial_Z";       // Network SSID (name)
 const char PASS[]     = "kingFelix";    // Network password (use for WPA, or use as key for WEP)
 
-float aveVirusIndex = 0;        //FIXME: link this variable to funciton
-float aveTemperature, aveHumidity, aveCo2, aveVoc, aveDust, aveLight, aveSound;
+float aveVirusIndex, aveTemperature, aveHumidity, aveCo2, aveVoc, aveDust, aveLight, aveSound;
+//int virusIndex = round(aveVirusIndex);
 
 void initProperties(){
 
