@@ -6,6 +6,7 @@ A indoor environmental air quality sensor built on the Arduino framework.
 * Evaluate local values for temperature, humidity, VOC, CO2, PM2.5, light, and sound
 * Display live sensor readings
 * Identify levels that exceed recommended ranges
+* Wirelessly upload data to Arduino IOT Cloud
 
 ## Sensors
 * [VEML 7700](https://www.adafruit.com/product/4162) - Lux sensor
