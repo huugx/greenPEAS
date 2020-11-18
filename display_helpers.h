@@ -38,6 +38,7 @@ extern float histogramSensorIAQIndex[];
 void initTFT();
 void clearTFT();
 void histIndex();
+void histDraw();
 void screenMain();
 void screenTemperature();
 void screenHumidity();
