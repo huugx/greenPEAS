@@ -1,1 +1,1 @@
-# greenPEAS [![Latest Github release](https://img.shields.io/badge/build-dev-informational)](https://github.com/hfenaux/greenPEAS)  [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS)  
+# greenPEAS [![Latest Github release](https://img.shields.io/badge/build-development-informational)](https://github.com/hfenaux/greenPEAS)  [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS)  
