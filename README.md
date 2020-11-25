@@ -1,4 +1,4 @@
-# greenPEAS [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS) [![Latest Github release](https://img.shields.io/badge/build-development-informational)](https://github.com/hfenaux/greenPEAS)    [![GitHub last commit](https://img.shields.io/github/last-commit/google/skia.svg?style=flat)]()
+# greenPEAS [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS) [![Latest Github release](https://img.shields.io/badge/build-development-informational)](https://github.com/hfenaux/greenPEAS)
 
 A indoor environmental air quality sensor built on the Arduino framework.
 
