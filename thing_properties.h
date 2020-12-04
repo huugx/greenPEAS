@@ -10,13 +10,16 @@ const char THING_ID[] = "82a22de3-4fa9-44e7-a127-2949b1e37a84";
 const char SSID[]     = "dial_Z";       // Network SSID (name)
 const char PASS[]     = "kingFelix";    // Network password (use for WPA, or use as key for WEP)
 
+//const char SSID[]     = "88 Court Street";       // Network SSID (name)
+//const char PASS[]     = "";    // Network password (use for WPA, or use as key for WEP)
+
 float aveVirusIndex, aveTemperature, aveHumidity, aveCo2, aveVoc, aveDust, aveLight, aveSound;
-//int virusIndex = round(aveVirusIndex);
+int virusIndex = round(aveVirusIndex);
 
 void initProperties(){
 
   ArduinoCloud.setThingId(THING_ID);
-  ArduinoCloud.addProperty(aveVirusIndex, READ, ON_CHANGE, NULL);
+  ArduinoCloud.addProperty(virusIndex, READ, ON_CHANGE, NULL);
   ArduinoCloud.addProperty(aveTemperature, READ, ON_CHANGE, NULL);
   ArduinoCloud.addProperty(aveHumidity, READ, ON_CHANGE, NULL);
   ArduinoCloud.addProperty(aveCo2, READ, ON_CHANGE, NULL);

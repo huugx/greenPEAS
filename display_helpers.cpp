@@ -20,39 +20,42 @@ int vColor;
  *  
  */
 
-const int buttonPin = 6;                  //button for screen rotating
+const int buttonPin = 6;                  // button for screen rotating
 int buttonState;                          // the current reading from the input pin
 int lastButtonState = LOW;                // the previous reading from the input pin
-int buttonPos = 0;                           //position of btnScreen
-unsigned long lastDebounceTime = 0;       // the last time the output pin was toggled
+int buttonPos = 0;                        // position of btnScreen
+unsigned long lastDebounceTime;           // the last time the output pin was toggled
 unsigned long debounceDelay = 30;         // the debounce time; increase if the output flickers
 unsigned long lastScrnTime = 0;
 const unsigned long scrnDisplayReset = 15000;
 
 
+
 void debounceButton() {
+  unsigned long currentTime = millis();
   int reading = digitalRead(buttonPin);
 
   if (reading != lastButtonState) {
-    lastDebounceTime = millis();
+    lastDebounceTime = currentTime;
   }
 
-  if ((millis() - lastDebounceTime) >= debounceDelay) {
+  if ((unsigned long)(currentTime - lastDebounceTime) >= debounceDelay) {
     if (reading != buttonState) {
       buttonState = reading;
 
       if (buttonState == HIGH) {
+        buttonPos++;
         displayValuesOnTFT();
-        lastScrnTime = millis();
+        lastScrnTime = currentTime;
       } 
     }
   }
 
   if (buttonPos > 0) {
-    if ((millis() - lastScrnTime) >= scrnDisplayReset) {
+    if ((unsigned long)(currentTime - lastScrnTime) >= scrnDisplayReset) {
       buttonPos = 0;
       displayValuesOnTFT();
-      lastScrnTime = millis();
+      lastScrnTime = currentTime;
     }
   }
   
@@ -122,7 +125,7 @@ void (*displayMenuPointer[])() = {screenMain, screenTemperature, screenHumidity,
 void displayValuesOnTFT() {
   clearTFT();
 
-  displayMenuPointer[buttonPos++]();
+  displayMenuPointer[buttonPos]();
   if (buttonPos >= 8) {
     buttonPos = 0;
   }
@@ -174,7 +177,7 @@ void screenTemperature() {
   
   tft.drawBitmap(24, 12, tempIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[1]));
  
-  drawText(20,100, "Temp", WHITE, 1);
+  drawText(5,5, "Temperature", WHITE, 1);
   drawText(45,100, _temperature, WHITE, 3);
   drawText(85,100,"C", WHITE, 2);
 }
@@ -186,7 +189,7 @@ void screenHumidity() {
 
   tft.drawBitmap(24, 12, humIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[2]));
 
-  drawText(20,100, "Hum", WHITE, 1);
+  drawText(5,5, "Humidity", WHITE, 1);
   drawText(45,100, _humidity, WHITE, 3);
   drawText(85,100,"%", WHITE, 2);
 }
@@ -198,7 +201,7 @@ void screenCo2() {
 
    tft.drawBitmap(24, 12, coIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[3]));
   
-  drawText(20,100, "CO2", WHITE, 1);
+  drawText(5,5, "CO2", WHITE, 1);
   drawText(40,100, _eco2, WHITE, 3);
   drawText(95,100,"ppm", WHITE, 1);
 }
@@ -210,7 +213,7 @@ void screenVoc() {
 
   tft.drawBitmap(24, 12, vocIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[4]));
 
-  drawText(20,100, "VOC", WHITE, 1);
+  drawText(5,5, "VOC", WHITE, 1);
   drawText(40,100, _tvoc, WHITE, 3);
   drawText(92,100,"ppb", WHITE, 1);
 }
@@ -222,9 +225,10 @@ void screenDust() {
 
   tft.drawBitmap(24, 12, dustIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[5]));
   
-  drawText(20,100, "PM2.5: ", WHITE, 1);
+  drawText(5,5, "PM2.5", WHITE, 1);
   drawText(45,100, _dustcon, WHITE, 3);
-  drawText(85,100,"um/m3", WHITE, 1);
+  drawText(95,100,"um/", WHITE, 1);
+  drawText(95,110,"m3", WHITE, 1);
 }
 
 void screenLight() {
@@ -233,9 +237,9 @@ void screenLight() {
 
   tft.drawBitmap(24, 12, lightIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[6]));
   
-  drawText(20,100, "Light ", WHITE, 1);
-  drawText(45,100, _lux, WHITE, 3);
-  drawText(92,100,"lux", WHITE, 2);
+  drawText(5,5, "Light ", WHITE, 1);
+  drawText(40,100, _lux, WHITE, 3);
+  drawText(95,100,"lux", WHITE, 1);
 }
 
 void screenSound() {
@@ -244,9 +248,9 @@ void screenSound() {
 
   tft.drawBitmap(24, 12, soundIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[7]));
   
-  drawText(20,100, "Sound", WHITE, 1);
-  drawText(45,100, _sound, WHITE, 3);
-  drawText(95,100," ", WHITE, 2);
+  drawText(5,5, "Sound", WHITE, 1);
+  drawText(40,100, _sound, WHITE, 3);
+  drawText(95,100," ", WHITE, 1);
 }
 
 

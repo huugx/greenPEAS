@@ -19,9 +19,9 @@ INDOOR ENVIRONMENTAL SENSOR
 int postSensorCounter; 
 //int sampleSensorCounter;
 //unsigned long lastPostTime;
-unsigned long lastReadInterval;
+unsigned long prevReadTime;
 const unsigned long readInterval = 250;             //DO NOT CHANGE
-unsigned long lastHistogramUpdate = 0;
+unsigned long prevHistogramTime;
 const unsigned long histogramInterval = 3600000;  //FIXME: CHANGE TO 3600000
 //unsigned long aveSensorReadings = (postInterval/readInterval) - 1;
 //const unsigned long displayInterval = 0;
@@ -51,28 +51,30 @@ void loop() {
 //  int adc = analogRead(A3);
 //  Serial.println(adc);
 
-  
-  if ((millis() - lastReadInterval) >= readInterval) {
+  unsigned long currentTime = millis();
+  if ((unsigned long)(currentTime - prevReadTime) >= readInterval) {
     wifiStatus();
     smoothSensorData();       //read and average sensors
     postSensorCounter++;      //steps until cloud post
-    printSensors();           //DEBUG
-    lastReadInterval = millis();
+//    printSensors();           //DEBUG
+    prevReadTime = currentTime;
   }
  
   if (postSensorCounter >= smoothDataInterval) {
     postSensorsToCloud();       //convert array to variables - ensures only post on change
-    printSensorsAve();          
+//    printSensorsAve();          
 //    printSafeIndex();
     updateValuesOnTFT();
     ArduinoCloud.update();
     postSensorCounter = 0;
+    Serial.println(currentTime);
   }
 
-  if ((millis() - lastHistogramUpdate) >= histogramInterval) {
+  if ((unsigned long)(currentTime - prevHistogramTime) >= histogramInterval) {
     storeHistogramIndex();
-//    histDraw();
-    lastHistogramUpdate = millis();
+    Serial.println("histogram");
+    histDraw();
+    prevHistogramTime = currentTime;
   }
   
 }
