@@ -8,7 +8,7 @@
 extern const unsigned long readInterval;
 
 const int smoothDataInterval = 20;
-const int prevHourDataInterval = 300;       // Average past hour of readings (3600)/(60/(readInterval*smoothDataInterval)/1000)
+const int prevHourDataInterval = 180;       // Average past hour of readings (3600)/(60/(readInterval*smoothDataInterval)/1000)
 const int histogramDataInterval = 11;       // Show 10 hours on the histogram
 
 
@@ -28,7 +28,7 @@ float getSound();
 float getTemperature();
 float getHumidity();
 float getDust();
-int calcDustFilter(int m);
+int Filter(int m);
 void configureLight();
 uint32_t getAbsoluteHumidity(float temperature, float humidity);
 void triggerAveDustToPost();

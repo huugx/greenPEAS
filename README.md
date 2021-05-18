@@ -1,6 +1,14 @@
-# greenPEAS [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS) [![Latest Github release](https://img.shields.io/badge/build-development-informational)](https://github.com/hfenaux/greenPEAS)
+                            _____  ______           _____ 
+                           |  __ \|  ____|   /\    / ____|
+   __ _ _ __ ___  ___ _ __ | |__) | |__     /  \  | (___  
+  / _` | '__/ _ \/ _ \ '_ \|  ___/|  __|   / /\ \  \___ \ 
+ | (_| | | |  __/  __/ | | | |    | |____ / ____ \ ____) | 
+  \__, |_|  \___|\___|_| |_|_|    |______/_/    \_\_____/  [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS) [![Latest Github release](https://img.shields.io/badge/build-development-informational)](https://github.com/hfenaux/greenPEAS) 
+   __/ |                                                  
+  |___/                                                   
 
-A indoor environmental air quality sensor built on the Arduino framework.
+
+An indoor environmental air quality sensor built on the Arduino framework.
 
 ## Features
 * Evaluate local values for temperature, humidity, VOC, CO2, PM2.5, light, and sound
@@ -20,3 +28,11 @@ A indoor environmental air quality sensor built on the Arduino framework.
 * [Fan](https://www.adafruit.com/product/4468) - 5V cooling fan
 * 3V-5V Step Up Converter
 * 350mAh Lipo Battery
+
+
+## Reference Links
+* [Image to Byte Array](https://javl.github.io/image2cpp/)
+* [TFT Reference](https://learn.adafruit.com/adafruit-gfx-graphics-library/coordinate-system-and-units)
+* [16 Bit Color Generator](https://ee-programming-notepad.blogspot.com/2016/10/16-bit-color-generator-picker.html)
+* [Arduino JSON Assistant](https://arduinojson.org/v6/assistant/)
+* [ASCII Text Generator](https://patorjk.com/software/taag/#p=testall&f=Alpha&t=greenPEAS)

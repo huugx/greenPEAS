@@ -18,6 +18,7 @@ int storeIAQIndexCounter = 0;
 float storeIAQIndexTotal = 0;
 int storeHistogramIAQIndexCounter = 0;
 int avePrevHourIAQIndex = 0;
+int sgpBaselineCounter = 0;
 
 float readSensorTotal[sensorQty];
 float dataSensorArray[smoothDataInterval][sensorQty];
@@ -125,7 +126,7 @@ float (*getSensorCurr[])() = {getVirusIndex, getTemperature, getHumidity, getCo2
 void smoothSensorData() {
   
   for (int i=0; i < sensorQty; i++) {
-    currSensorData[i] = getSensorCurr[i]();     //Debug only - printSensor();
+//    currSensorData[i] = getSensorCurr[i]();     //Debug only - printSensor();
     // subtract the last reading:
     readSensorTotal[i] = readSensorTotal[i] - dataSensorArray[readSensorIndex][i];
     // read from the sensor:
@@ -207,9 +208,9 @@ void printSensors() {
 //    Serial.print("Virus Index: "); Serial.println(currSensorData[0]);
 //    Serial.print("Temp: "); Serial.print(currSensorData[1]); Serial.println(" F");
 //    Serial.print("Humidity: "); Serial.print(currSensorData[2]); Serial.println("%");
-    Serial.print("CO2: "); Serial.print(currSensorData[3]); Serial.println( " ppm");
-    Serial.print("VOC: "); Serial.print(currSensorData[4]); Serial.println(" ppb");
-//    Serial.print("Dust: "); Serial.print(currSensorData[5]); Serial.println(" ug/m3");  
+//    Serial.print("CO2: "); Serial.print(currSensorData[3]); Serial.println( " ppm");
+//    Serial.print("VOC: "); Serial.print(currSensorData[4]); Serial.println(" ppb");
+    Serial.print("Dust: "); Serial.print(currSensorData[5]); Serial.println(" ug/m3");  
 //    Serial.print("Lux: "); Serial.print(currSensorData[6]); Serial.println( " lux");
 //    Serial.print("Sound: "); Serial.print(currSensorData[7]); Serial.println( " dB");
 } /* end printSensors() */
@@ -225,9 +226,9 @@ void printSensorsAve() {
 //    Serial.print("Virus Index: "); Serial.println(aveSensorData[0]);
 //    Serial.print("Temp Average: "); Serial.print(aveSensorData[1]); Serial.println(" F");
 //    Serial.print("Humidity Average: "); Serial.print(aveSensorData[2]); Serial.println("%");
-    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
-    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
-//    Serial.print("Dust Average: "); Serial.print(aveSensorData[5]); Serial.println(" ug/m3");  
+//    Serial.print("CO2 Average: "); Serial.print(aveSensorData[3]); Serial.println( " ppm");
+//    Serial.print("VOC Average: "); Serial.print(aveSensorData[4]); Serial.println(" ppb");
+    Serial.print("Dust Average: "); Serial.print(aveSensorData[5]); Serial.println(" ug/m3");  
 //    Serial.print("Lux Average: "); Serial.print(aveSensorData[6]); Serial.println( " lux");
 //    Serial.print("Sound Average: "); Serial.println(aveSensorData[7]);
     Serial.println("/////////////////////////////////");
@@ -268,28 +269,29 @@ void postSensorsToCloud() {
     aveHumidity = aveSensorData[2];
     aveCo2 = aveSensorData[3];
     aveVoc = aveSensorData[4];
-    triggerAveDustToPost();
+//    triggerAveDustToPost();
+    aveDust = aveSensorData[5];
     aveLight = aveSensorData[6];
     aveSound = aveSensorData[7];
 }
-/////////////////////////////////
-// Trigger Dust Change for Posting
-/////////////////////////////////
-void triggerAveDustToPost() {
-    float sampleDust = aveSensorData[5];
-
-    if (sampleDust <= 0.01 && preDust == 0) {
-        aveDust = 0.1;
-    } else if (sampleDust <= 0.01 && preDust == 0.1) {
-        aveDust = 0.00;
-    } else {
-      aveDust = sampleDust;
-    } 
-    preDust = aveDust;
-
-}
-// END POSTING
-/////////////////////////////////
+///////////////////////////////////
+//// Trigger Dust Change for Posting
+///////////////////////////////////
+//void triggerAveDustToPost() {
+//    float sampleDust = aveSensorData[5];
+//
+//    if (sampleDust <= 0.01 && preDust == 0) {
+//        aveDust = 0.1;
+//    } else if (sampleDust <= 0.01 && preDust == 0.1) {
+//        aveDust = 0.00;
+//    } else {
+//      aveDust = sampleDust;
+//    } 
+//    preDust = aveDust;
+//
+//}
+//// END POSTING
+///////////////////////////////////
 
 
 
@@ -316,6 +318,9 @@ float getCo2() {
   getAbsoluteHumidityCompensation();
   
   sgp.IAQmeasure();
+
+  Serial.print("TVOC "); Serial.print(sgp.TVOC); Serial.print(" ppb\t");
+  Serial.print("eCO2 "); Serial.print(sgp.eCO2); Serial.println(" ppm");
   
   currVoc = sgp.TVOC;
   rawCo2 = sgp.eCO2;
@@ -326,6 +331,13 @@ float getCo2() {
     currCo2 = rawCo2;
   }
   preCo2 = currCo2;
+
+  sgpBaselineCounter++;
+
+  if (sgpBaselineCounter == 30) {
+    sgpBaselineCounter = 0;
+    getVocCo2Baseline();
+  }
 
  float currSample = currCo2;
  return currSample;
@@ -350,18 +362,13 @@ void getAbsoluteHumidityCompensation() {
 
 void getVocCo2Baseline() {
   
-  counter++;
-  if (counter == 30) {
-    counter = 0;
-
     uint16_t TVOC_base, eCO2_base;
     if (! sgp.getIAQBaseline(&eCO2_base, &TVOC_base)) {
       Serial.println("Failed to get baseline readings");
       return;
     }
-//    Serial.print("****Baseline values: eCO2: 0x"); Serial.print(eCO2_base, HEX);
-//    Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
-  }
+    Serial.print("****Baseline values: eCO2: 0x"); Serial.print(eCO2_base, HEX);
+    Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
 }
 // end VOC AND CO2
 /////////////////////////////////
@@ -474,22 +481,39 @@ float getDust() {
   float density, voltage;
   int adcValue;
 
+  /*
+  get adcValue
+  */
   digitalWrite(pinDustLed, HIGH);
   delayMicroseconds(280);
-  
   adcValue = analogRead(pinDustVolt);
   digitalWrite(pinDustLed, LOW);
-
-  adcValue = calcDustFilter(adcValue);
-
-  voltage = (sysVoltage / 1024.0) * adcValue * 11;   //convert voltage (mv)
-
-  if(voltage >= noDustVoltage) {                    //convert voltage to dust density
+  
+  adcValue = Filter(adcValue);
+  
+  /*
+  covert voltage (mv)
+  */
+  voltage = (sysVoltage / 1024.0) * adcValue * 11;
+  
+  /*
+  voltage to density
+  */
+  if(voltage >= noDustVoltage)
+  {
     voltage -= noDustVoltage;
+    
     density = voltage * voltRatio;
-  } else {
-    density = 0;
   }
+  else
+    density = 0;
+    
+  /*
+  display the result
+  */
+//  Serial.print("The current dust concentration is: ");
+//  Serial.print(density);
+//  Serial.print(" ug/m3\n");  
 
   float currSample = density;
   return currSample;
@@ -498,29 +522,36 @@ float getDust() {
 /////////////////////////////////
 /////////////////////////////////
 // DUST HELPER
-int calcDustFilter(int m) {
+int Filter(int m)
+{
   static int flag_first = 0, _buff[10], sum;
   const int _buff_max = 10;
   int i;
   
-  if(flag_first == 0) {
+  if(flag_first == 0)
+  {
     flag_first = 1;
-    for(i = 0, sum = 0; i < _buff_max; i++) {
+
+    for(i = 0, sum = 0; i < _buff_max; i++)
+    {
       _buff[i] = m;
       sum += _buff[i];
     }
     return m;
-  } else {
+  }
+  else
+  {
     sum -= _buff[0];
-    for(i = 0; i < (_buff_max - 1); i++) {
+    for(i = 0; i < (_buff_max - 1); i++)
+    {
       _buff[i] = _buff[i + 1];
     }
     _buff[9] = m;
     sum += _buff[9];
+    
     i = sum / 10.0;
     return i;
   }
-  
 }
 // end DUST HELPER 
 /////////////////////////////////
