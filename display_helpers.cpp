@@ -126,13 +126,15 @@ void displayValuesOnTFT() {
   clearTFT();
 
   displayMenuPointer[buttonPos]();
-  if (buttonPos >= 8) {
-    buttonPos = 0;
+  if (buttonPos >= 7) {
+    buttonPos = -1;
+    Serial.println(buttonPos);
   }
 }
 
 void updateValuesOnTFT() {
   if (buttonPos == 0) {
+    clearTFT();
     screenMain();
   }
 }
@@ -209,7 +211,7 @@ void screenCo2() {
 void screenVoc() {
   
   char _tvoc[6];     // float to char conversion
-  dtostrf(aveSensorData[5], 2, 0, _tvoc);
+  dtostrf(aveSensorData[4], 2, 0, _tvoc);
 
   tft.drawBitmap(24, 12, vocIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[4]));
 
@@ -221,7 +223,7 @@ void screenVoc() {
 void screenDust() {
   
   char _dustcon[6];     // float to char conversion
-  dtostrf(aveSensorData[4], 2, 0, _dustcon);
+  dtostrf(aveSensorData[5], 2, 0, _dustcon);
 
   tft.drawBitmap(24, 12, dustIconLg, 80, 80, BLACK, colorPicker(aveSensorIAQIndex[5]));
   
