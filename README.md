@@ -1,9 +1,9 @@
-                            ____  _____    _    ____  
-   __ _ _ __ ___  ___ _ __ |  _ \| ____|  / \  / ___| 
-  / _` | '__/ _ \/ _ \ '_ \| |_) |  _|   / _ \ \___ \ 
- | (_| | | |  __/  __/ | | |  __/| |___ / ___ \ ___) |
-  \__, |_|  \___|\___|_| |_|_|   |_____/_/   \_\____/ 
-  |___/                                               
+                            ____  _____    _    ____                  
+   __ _ _ __ ___  ___ _ __ |  _ \| ____|  / \  / ___|                 
+  / _` | '__/ _ \/ _ \ '_ \| |_) |  _|   / _ \ \___ \                 
+ | (_| | | |  __/  __/ | | |  __/| |___ / ___ \ ___) |                
+  \__, |_|  \___|\___|_| |_|_|   |_____/_/   \_\____/                 
+  |___/                                                               
 
 
 # greenPEAS [![greenPEAS](https://img.shields.io/badge/green-PEAS-success)](https://github.com/hfenaux/greenPEAS) [![Latest Github release](https://img.shields.io/badge/build-development-informational)](https://github.com/hfenaux/greenPEAS)
