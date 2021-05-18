@@ -7,15 +7,12 @@
 
 // visit io.adafruit.com if you need tocreate an account,
 // or if you need your Adafruit IO key.
-#define IO_USERNAME "hfenaux"
-#define IO_KEY "17139df13293454e9476f79098ac9154"
+#define IO_USERNAME ""
+#define IO_KEY ""
 #define IO_GROUP "greenpeas"
 
-char ssid[]     = "Minotaurs Armpit";       // Network SSID (name)
-char pass[]     = "heyheywannadonut";       // Network password (use for WPA, or use as key for WEP)
-
-//char ssid[]     = "CBKGuest";           // Network SSID (name)
-//char pass[]     = "Palizzi03212012";    // Network password (use for WPA, or use as key for WEP)
+char ssid[]     = "";       // Network SSID (name)
+char pass[]     = "";       // Network password (use for WPA, or use as key for WEP)
 
 int status = WL_IDLE_STATUS;
 char server[] = "io.adafruit.com"; // name address for Adafruit IOT Cloud
